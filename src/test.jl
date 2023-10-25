@@ -1,5 +1,7 @@
 using LinearAlgebra
 
+using LinearAlgebra
+
 function jacobi_transform(m_list::Vector{T}) where T
     dim = length(m_list)
     J = Matrix{T}(zeros(dim, dim))
@@ -61,6 +63,35 @@ function w_gen_3()
     w_list[3][3] = -1
     return w_list
 end
+using LinearAlgebra 
+
+#A_{ij}r_i*r_j
+function shift(a::Matrix{T}, b::Matrix{T}) where T
+    n = size(a, 2)
+    total = zero(T)
+    mat = I
+    for i in 1:n
+        for j in 1:n
+            dot_product = dot(a[:, i], b[:, j])
+            total += mat[i, j] * dot_product
+        end
+    end
+    return total
+end
+
+function transform_list(alphas)
+    g_new = [Matrix{Float64}(I, 1, 1) * alphas[i] for i in 1:length(alphas)]
+    return g_new
+end
+
+function S_elements(A, B, K)
+    dim = size(A, 1)
+    D = A + B
+    R = inv(D)
+    M0 = (π^dim / det(D))^(3/2)
+    trace = tr(B * K * A * R)
+    return M0, trace
+end
 
 function A_generate(bij, w_list)
     if isa(bij, Array) || isa(bij, AbstractArray)
@@ -82,3 +113,48 @@ function A_generate(bij, w_list)
     end
 end
 
+
+
+function S_wave(alphas, K, w = nothing)
+    length = length(alphas)
+    alphas = transform_list(alphas)
+    kinetic = zeros(length, length)
+    overlap = zeros(length, length)
+    coulomb = zeros(length, length)
+    
+    for i in 1:length
+        for j in 1:length
+            if j <= i
+                A = alphas[i]
+                B = alphas[j]
+                M0, trace, coul = S_elem(A, B, K, w)
+                R = inv(A + B)
+                overlap[i, j] = M0
+                overlap[j, i] = overlap[i, j]
+                kinetic[i, j] = 6 * trace * M0
+                kinetic[j, i] = kinetic[i, j]
+                coulomb[i, j] = coul
+                coulomb[j, i] = coulomb[i, j]
+            end
+        end
+    end
+    
+    return overlap, kinetic, coulomb
+end
+
+function energyS(bij, K, w)
+    alphas = []
+    dim = length(w)
+    
+    for i in 1:dim:length(bij)
+        A = A_generate(bij[i:i+dim-1], w)
+        push!(alphas, A)
+    end
+    
+    N, kinetic, coulomb = S_wave(alphas, K, w)
+    H = kinetic + coulomb
+    E = eigen(H).values
+    E0 = minimum(E)
+    
+    return E0
+end
