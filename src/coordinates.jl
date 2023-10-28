@@ -1,6 +1,6 @@
 using LinearAlgebra
 
-function jacobi_transform(m_list::Vector{T}) where T
+function Ω(m_list::Vector{T}) where T
     dim = length(m_list)
     J = Matrix{T}(zeros(dim, dim))
     
@@ -82,3 +82,16 @@ function A_generate(bij, w_list)
     end
 end
 
+function Λ(Ω::Matrix{T}, m_list::Vector{T}) where T
+    dim = length(m_list)
+    Λ = Matrix{T}(zeros(dim, dim))
+    J, U = Ω(m_list)
+    for k in 1:dim
+        for j in 1:dim-1
+            for i in 1:dim-1
+                Λ[i, k] += J[i, k] * J[j, k] / m_list[k]
+            end
+        end
+    end
+    return Λ
+end

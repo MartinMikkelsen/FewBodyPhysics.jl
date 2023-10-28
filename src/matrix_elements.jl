@@ -14,8 +14,8 @@ function shift(a::Matrix{T}, b::Matrix{T}) where T
     return total
 end
 
-function transform_list(alphas)
-    g_new = [Matrix{Float64}(I, 1, 1) * alphas[i] for i in 1:length(alphas)]
+function transform_list(α)
+    g_new = [Matrix{Float64}(I, 1, 1) * α[i] for i in 1:length(α)]
     return g_new
 end
 
@@ -26,4 +26,45 @@ function S_elements(A, B, K)
     M0 = (π^dim / det(D))^(3/2)
     trace = tr(B * K * A * R)
     return M0, trace
+end
+
+function S_wave(α, K, w = nothing)
+    length = length(α)
+    α = transform_list(α)
+    kinetic = zeros(length, length)
+    overlap = zeros(length, length)
+    coulomb = zeros(length, length)
+    
+    for i in 1:length
+        for j in 1:length
+            if j <= i
+                A = α[i]
+                B = α[j]
+                M0, trace, coul = S_elem(A, B, K, w)
+                R = inv(A + B)
+                overlap[i, j] = M0
+                overlap[j, i] = overlap[i, j]
+                kinetic[i, j] = 6 * trace * M0
+                kinetic[j, i] = kinetic[i, j]
+                coulomb[i, j] = coul
+                coulomb[j, i] = coulomb[i, j]
+            end
+        end
+    end
+    return overlap, kinetic, coulomb
+end
+
+
+function energy_S_wave(bij,K::Matrix{Float64},w)
+    α = []
+    dim = length(w)
+    for i in range(1,length(bij),dim)
+        A = trace(A_generate(bij[i:1+dim],w))
+        α = push!(A)
+    end
+    N, T = S_wave(α,K,w)
+    H = T+Coulomb
+    E = eigh(H,N)
+    ground_state_energy = min(E)
+    return ground_state_energy
 end

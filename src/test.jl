@@ -1,8 +1,6 @@
 using LinearAlgebra
 
-using LinearAlgebra
-
-function jacobi_transform(m_list::Vector{T}) where T
+function Ω(m_list::Vector{T}) where T
     dim = length(m_list)
     J = Matrix{T}(zeros(dim, dim))
     
@@ -63,35 +61,6 @@ function w_gen_3()
     w_list[3][3] = -1
     return w_list
 end
-using LinearAlgebra 
-
-#A_{ij}r_i*r_j
-function shift(a::Matrix{T}, b::Matrix{T}) where T
-    n = size(a, 2)
-    total = zero(T)
-    mat = I
-    for i in 1:n
-        for j in 1:n
-            dot_product = dot(a[:, i], b[:, j])
-            total += mat[i, j] * dot_product
-        end
-    end
-    return total
-end
-
-function transform_list(alphas)
-    g_new = [Matrix{Float64}(I, 1, 1) * alphas[i] for i in 1:length(alphas)]
-    return g_new
-end
-
-function S_elements(A, B, K)
-    dim = size(A, 1)
-    D = A + B
-    R = inv(D)
-    M0 = (π^dim / det(D))^(3/2)
-    trace = tr(B * K * A * R)
-    return M0, trace
-end
 
 function A_generate(bij, w_list)
     if isa(bij, Array) || isa(bij, AbstractArray)
@@ -113,48 +82,149 @@ function A_generate(bij, w_list)
     end
 end
 
+function Λ(Ω::Matrix{T}, m_list::Vector{T}) where T
+    dim = length(m_list)
+    Λ = Matrix{T}(zeros(dim, dim))
+    J, U = Ω(m_list)
+    for k in 1:dim
+        for j in 1:dim-1
+            for i in 1:dim-1
+                Λ[i, k] += J[i, k] * J[j, k] / m_list[k]
+            end
+        end
+    end
+    return Λ
+end
+### Consider algorithm
+function transform_coordinates(Ω::Matrix{Float64}, r::Vector{Float64})
+    J, U = Ω(m_list)
+    return J \ r
+end
+
+function transform_back(Ω::Matrix{Float64},x::Matrix{Float64})
+    J, U = Ω(m_list)
+    return U \ x
+end
 
 
-function S_wave(alphas, K, w = nothing)
-    length = length(alphas)
-    alphas = transform_list(alphas)
+#A_{ij}r_i*r_j
+function shift(a::Matrix{T}, b::Matrix{T}) where T
+    n = size(a, 2)
+    total = zero(T)
+    mat = I
+    for i in 1:n
+        for j in 1:n
+            dot_product = dot(a[:, i], b[:, j])
+            total += mat[i, j] * dot_product
+        end
+    end
+    return total
+end
+
+function transform_list(α)
+    g_new = [Matrix{Float64}(I, 1, 1) * α[i] for i in 1:length(α)]
+    return g_new
+end
+
+function S_elements(A, B, K)
+    dim = size(A, 1)
+    D = A + B
+    R = inv(D)
+    M0 = (π^dim / det(D))^(3/2)
+    trace = tr(B * K * A * R)
+    return M0, trace
+end
+
+function S_wave(α, K, w = nothing)
+    length = length(α)
+    α = transform_list(α)
     kinetic = zeros(length, length)
     overlap = zeros(length, length)
-    coulomb = zeros(length, length)
+    Coulomb = zeros(length, length)
     
     for i in 1:length
         for j in 1:length
             if j <= i
-                A = alphas[i]
-                B = alphas[j]
-                M0, trace, coul = S_elem(A, B, K, w)
+                A = α[i]
+                B = α[j]
+                M0, trace, Coul = S_elem(A, B, K, w)
                 R = inv(A + B)
                 overlap[i, j] = M0
                 overlap[j, i] = overlap[i, j]
                 kinetic[i, j] = 6 * trace * M0
                 kinetic[j, i] = kinetic[i, j]
-                coulomb[i, j] = coul
-                coulomb[j, i] = coulomb[i, j]
+                Coulomb[i, j] = Coul
+                Coulomb[j, i] = Coulomb[i, j]
             end
         end
     end
-    
-    return overlap, kinetic, coulomb
+    return overlap, kinetic, Coulomb
 end
 
-function energyS(bij, K, w)
-    alphas = []
+function energy_S_wave(bij, K::Matrix{Float64}, w)
+    α = Vector{Float64}()
     dim = length(w)
-    
     for i in 1:dim:length(bij)
-        A = A_generate(bij[i:i+dim-1], w)
-        push!(alphas, A)
+        A = A_generate(bij[1:i], w)
+        push!(α, tr(A))  # Corrected trace calculation
     end
-    
-    N, kinetic, coulomb = S_wave(alphas, K, w)
-    H = kinetic + coulomb
-    E = eigen(H).values
-    E0 = minimum(E)
-    
-    return E0
+    N, T, _ = S_wave(α, K, w)  # I've removed Coulomb term as it was not defined
+    H = T
+    E = eigen(H, N)
+    ground_state_energy = minimum(E.values)
+    return ground_state_energy
 end
+
+w_list = w_gen_3()
+m_list = [Inf, 1.0, 1.0]
+K = [0 0 0; 0 1/2 0; 0 0 1/2]
+J, U = Ω(m_list)
+K_trans = J * K * J'
+w_trans = [U' * w_list[i] for i in 1:length(w_list)]
+
+b1=7
+E_list=[]
+gaussians=[]
+E_theoS=[]
+bij = Float64[]
+
+E_S=-0.527
+
+E_low = Inf
+bases = []
+base_test = []
+E_list = []
+gaussians = Int[]
+E_theoS = []
+
+for i in 1:25
+    hal = halton(i, 15 * length(w_trans))
+    bij = -log.(hal) * b1
+    base_curr = Float64[]
+
+    for j in 1:length(hal):length(w_trans)
+        push!(base_test, bij[j:j+length(w_trans)-1]...)  # Modify the content of base_test
+
+        E0 = energy_S_wave(base_test, K_trans, w_trans)
+
+        if E0 <= E_low
+            E_low = E0
+            base_curr = copy(bij[j:j+length(w_trans)-1])
+        end
+
+        # Remove elements from base_test
+        base_test = base_test[1:end-length(w_trans)]
+    end
+
+    append!(bases, base_curr)
+    append!(base_test, base_curr)
+    push!(E_list, E_low)
+    push!(gaussians, i)
+    push!(E_theoS, E_S)
+
+    println("E_low for iteration $i: $E_low")
+end
+
+println("Best convergent numerical value: ", E_list[end])
+println("Theoretical value: ", E_S)
+println("Difference: ", abs(E_list[end] - E_S))
