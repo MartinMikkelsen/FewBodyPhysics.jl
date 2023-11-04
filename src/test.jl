@@ -120,15 +120,13 @@ function w_gen(dim, i, j)
     end
 end
 
-np = pyimport("numpy")
-sci = pyimport("scipy")
 function S_elem(A, B, K, w=nothing)
     dim = size(A, 1)
     coul = 0.0
     D = A + B
     R = inv(D)
     M0 = (π^dim / det(D))^(3.0 / 2)
-    trace = np.trace(B * K * A * R)
+    tra = tr(B * K * A * R)
     if w !== nothing
         for k in 1:length(w)
             beta = 1 / (w[k]' * R * w[k])
@@ -138,9 +136,9 @@ function S_elem(A, B, K, w=nothing)
                 coul -= 2 * sqrt(beta / π) * M0
             end
         end
-        return M0, trace, coul
+        return M0, tra, coul
     else
-        return M0, trace
+        return M0, tra
     end
 end
 
@@ -174,8 +172,8 @@ function S_wave(alphas, K, w=nothing)
 end
 
 w_list = w_gen_3()
-m_list = np.array([1, 1, 1])
-K = np.array([[0,0,0],[0,1/2,0],[0,0,1/2]])
+m_list = [1, 1, 1]
+K = [0 0 0; 0 1/2 0; 0 0 1/2]
 J, U = jacobi_transform(m_list)
 K_trans = J * K * J'
 w_trans = [U' * w_list[i] for i in 1:length(w_list)]
@@ -189,7 +187,7 @@ function energyS(bij, K, w)
     end
     N, kinetic, coulomb = S_wave(alphas, K, w)
     H = kinetic + coulomb
-    E = sci.linalg.eigh(H, N, eigvals_only=true)
+    E,v = eigen(H, N)
     E0 = minimum(E)
     return E0
 end
