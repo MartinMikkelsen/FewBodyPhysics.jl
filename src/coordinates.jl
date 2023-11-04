@@ -95,3 +95,13 @@ function Λ(Ω::Matrix{T}, m_list::Vector{T}) where T
     end
     return Λ
 end
+### Consider algorithm
+function transform_coordinates(Ω::Matrix{Float64}, r::Vector{Float64})
+    J, U = Ω(m_list)
+    return J \ r
+end
+
+function transform_back(Ω::Matrix{Float64},x::Matrix{Float64})
+    J, U = Ω(m_list)
+    return U \ x
+end

@@ -33,27 +33,26 @@ function S_wave(α, K, w = nothing)
     α = transform_list(α)
     kinetic = zeros(length, length)
     overlap = zeros(length, length)
-    coulomb = zeros(length, length)
+    Coulomb = zeros(length, length)
     
     for i in 1:length
         for j in 1:length
             if j <= i
                 A = α[i]
                 B = α[j]
-                M0, trace, coul = S_elem(A, B, K, w)
+                M0, trace, Coul = S_elem(A, B, K, w)
                 R = inv(A + B)
                 overlap[i, j] = M0
                 overlap[j, i] = overlap[i, j]
                 kinetic[i, j] = 6 * trace * M0
                 kinetic[j, i] = kinetic[i, j]
-                coulomb[i, j] = coul
-                coulomb[j, i] = coulomb[i, j]
+                Coulomb[i, j] = Coul
+                Coulomb[j, i] = Coulomb[i, j]
             end
         end
     end
-    return overlap, kinetic, coulomb
+    return overlap, kinetic, Coulomb
 end
-
 
 function energy_S_wave(bij,K::Matrix{Float64},w)
     α = []
@@ -64,7 +63,8 @@ function energy_S_wave(bij,K::Matrix{Float64},w)
     end
     N, T = S_wave(α,K,w)
     H = T+Coulomb
-    E = eigh(H,N)
-    ground_state_energy = min(E)
+    E = eigen(H,N)
+    ground_state_energy = minimum(E)
     return ground_state_energy
 end
+

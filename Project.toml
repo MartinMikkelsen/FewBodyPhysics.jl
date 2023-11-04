@@ -3,6 +3,11 @@ uuid = "dd57e2ab-7dae-448b-a136-57ab9eca4234"
 authors = ["Martin Mikkelsen"]
 version = "1.0.0-DEV"
 
+[deps]
+Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+
 [compat]
 julia = "1"
 

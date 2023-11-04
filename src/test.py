@@ -83,6 +83,7 @@ def shift_dot(a,b,mat=None):
 
 def transform_list(alphas):
     g_new=[np.ones((1,1))*alphas[i] for i in range(len(alphas))]
+    print("size=",np.shape(g_new))
     return g_new
 
 def w_gen(dim, i,j):  
@@ -170,7 +171,7 @@ E_S=-0.527
 E_low=np.inf
 bases=np.array([])
 base_test=np.array([])
-for i in range(100):
+for i in range(50):
    hal=halton(i+1,15*len(w_trans))
    bij=-np.log(hal)*b1
    for j in range(0,len(hal),len(w_trans)):
@@ -198,5 +199,4 @@ plt.title('S-wave convergence of Positron and two Electron System')
 plt.xlabel('Number of Gaussians')
 plt.ylabel('Energy [Hartree]')
 plt.legend(['Numerical result', 'Theoretical value'])
-plt.savefig('electron_positron_SVM.pdf'.format(0))
 plt.show()
