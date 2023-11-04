@@ -166,12 +166,12 @@ E_theoS=[]
 bij=np.array([])
 E_S=-0.527
 
-#print("---------QUASI-RANDOM METHOD---------")
+print("---------QUASI-RANDOM METHOD---------")
 
 E_low=np.inf
 bases=np.array([])
 base_test=np.array([])
-for i in range(50):
+for i in range(25):
    hal=halton(i+1,15*len(w_trans))
    bij=-np.log(hal)*b1
    for j in range(0,len(hal),len(w_trans)):
@@ -192,11 +192,24 @@ print("Best convergent numerical value:", E_list[-1])
 print("Theoretical value:", E_S)
 print("Difference:", np.abs(E_list[-1]-E_S))
 
-plt.figure(2)
-plt.plot(gaussians,E_list, marker='.')
-plt.plot(gaussians,E_theoS, '--')
-plt.title('S-wave convergence of Positron and two Electron System')
-plt.xlabel('Number of Gaussians')
-plt.ylabel('Energy [Hartree]')
-plt.legend(['Numerical result', 'Theoretical value'])
-plt.show()
+print("---------QUASI-RANDOM METHOD W. REFINEMENT---------")
+
+bases_ref=np.copy(bases)
+E_ref=E_list[-1]
+E_list_ref=[]
+for i in range(len(bases_ref)-len(w_trans)):
+   rand_ref=np.random.rand(200*len(w_trans))
+   bij_ref=-np.log(rand_ref)*b1
+   for j in range(0, len(rand_ref),len(w_trans)):
+       bases_ref[i:i+len(w_trans)]=bij_ref[j:j+len(w_trans)]
+       E_test=energyS(bases_ref,K_trans,w_trans)
+       if E_test<E_ref:
+           E_ref=E_test
+           bases[i:i+len(w_trans)]=bij_ref[j:j+len(w_trans)]
+   bases_ref=np.copy(bases)
+   E_list_ref.append(E_ref)
+   print('E_ref:', E_ref)
+
+print('Energy after refinement:', E_ref)
+print('Difference in energy from before refinement:', np.abs(E_ref-E_list[-1]))
+print('Difference from target value:', np.abs(E_ref-E_S))
