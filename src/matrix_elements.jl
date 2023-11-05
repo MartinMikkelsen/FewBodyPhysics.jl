@@ -1,18 +1,4 @@
-shift_dot(a, b, mat=nothing) = begin
-    n = size(a, 2)
-    sum_val = 0.0
-    mat = isnothing(mat) ? I : mat
-    @assert n == size(mat, 1) "ERROR! Matrix shape does not match number of shift vectors."
-    for i in 1:n
-        for j in 1:n
-            sum_val += mat[i, j] * (a[:, i]' * b[:, j])
-        end
-    end
-    return sum_val
-end
-
-
-w_gen(dim, i, j) = dim == 1 ? [1] : [k == i && 1 || k == j && -1 || 0 for k in 1:dim]
+export S_elem, S_wave, energyS
 
 S_elem(A, B, K, w=nothing) = begin
     dim = size(A, 1)
