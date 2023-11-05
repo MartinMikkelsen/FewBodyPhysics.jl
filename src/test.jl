@@ -19,7 +19,7 @@ end
 
 w_gen_3() = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 
-corput(n, b=3) = begin
+corput(n::Int, b=3::Int) = begin
     q, bk = 0.0, 1 / b
     while n > 0
         n, rem = divrem(n, b)
@@ -29,7 +29,7 @@ corput(n, b=3) = begin
     return q
 end
 
-halton(n, d) = begin
+halton(n::Int, d::Int) = begin
     base = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,233,239,241,251,257,263,269,271,277,281]
     @assert length(base) ≥ d "Error: d exceeds the number of basis elements."
     return [corput(n, base[i]) for i in 1:d]
@@ -129,8 +129,6 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol)
     global base_test = []
     if method == :quasirandom
         println("---------QUASI-RANDOM METHOD---------")
-
-
         for i in 1:num_gauss
             hal = halton(i, 15 * length(w_trans))
             bij = -log.(hal) .* b1
@@ -153,7 +151,6 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol)
 
     elseif method == :quasirandomrefined
         println("---------QUASI-RANDOM METHOD W. REFINEMENT---------")
-
         for i in 1:num_gauss
             hal = halton(i, 15 * length(w_trans))
             bij = -log.(hal) .* b1

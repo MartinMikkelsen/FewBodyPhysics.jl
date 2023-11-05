@@ -1,8 +1,7 @@
 using Plots
 export corput, halton, run_simulation
-"""
-    corput(n, b=3)
 
+"""
 Generate the nth element of the van der Corput sequence in base b.
 
 # Arguments
@@ -21,13 +20,26 @@ corput(n, b=3) = begin
     end
     return q
 end
+"""
+Generate the nth d-dimensional point in the Halton sequence.
 
+# Arguments
+- `n`: The nth element of the sequence to be generated.
+- `d`: The dimension of the space.
+
+# Returns
+- An array containing the nth d-dimensional point in the Halton sequence.
+
+# Errors
+- Throws an assertion error if `d` exceeds the number of basis elements.
+"""
 halton(n, d) = begin
     base = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,233,239,241,251,257,263,269,271,277,281]
     @assert length(base) ≥ d "Error: d exceeds the number of basis elements."
     return [corput(n, base[i]) for i in 1:d]
 end
 
+w_gen_3() = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 w_list = w_gen_3()
 m_list = [1, 1, 1]
 K = [0 0 0; 0 1/2 0; 0 0 1/2]
@@ -35,13 +47,27 @@ J, U = Ω(m_list)
 K_trans = J * K * J'
 w_trans = [U' * w_list[i] for i in 1:length(w_list)]
 
-function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_result=true::Bool)
+"""
+Run the simulation for a quantum system using quasi-random or pseudo-random methods to determine the S-wave convergence.
+
+# Arguments
+- `num_gauss::Int`: The number of Gaussians to use in the simulation. Default is 15.
+- `method::Symbol`: The method to use for the simulation. Can be `:quasirandom`, `:quasirandomrefined`, or `:psudorandom`. Default is `:quasirandom`.
+- `plot_result::Bool`: Whether to plot the results. Default is true.
+
+# Returns
+- `p`: The plot object if `plot_result` is true.
+
+# Notes
+- The function prints various convergence information and, if `plot_result` is true, displays a plot of the numerical result against the theoretical value.
+"""
+function run_simulation(num_gauss=25::Int, method=:quasirandom::Symbol, plot_result=true::Bool)
     b1 = 7
     E_list = []
     gaussians = []
-    E_theoS = []
+    E_theory = []
     bij = []
-    E_S = -0.527
+    E_S = -0.527 #Ground state energy of hydrogen anion in Hartree
     E_low = Inf
     global bases = []
     global base_test = []
@@ -54,7 +80,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             bij = -log.(hal) .* b1
             for j in 1:length(w_trans):length(hal)
                 append!(base_test, bij[j:j+length(w_trans)-1])
-                E0 = energyS(base_test, K_trans, w_trans)
+                E0 = S_energy(base_test, K_trans, w_trans)
                 if E0 <= E_low
                     E_low = E0
                     global base_curr = copy(bij[j:j+length(w_trans)-1])
@@ -66,7 +92,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             push!(E_list, E_low)
             println(E_low)
             push!(gaussians, i)
-            push!(E_theoS, E_S)
+            push!(E_theory, E_S)
         end
 
     elseif method == :quasirandomrefined
@@ -77,7 +103,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             bij = -log.(hal) .* b1
             for j in 1:length(w_trans):length(hal)
                 append!(base_test, bij[j:j+length(w_trans)-1])
-                E0 = energyS(base_test, K_trans, w_trans)
+                E0 = S_energy(base_test, K_trans, w_trans)
                 if E0 <= E_low
                     E_low = E0
                     global base_curr = copy(bij[j:j+length(w_trans)-1])
@@ -89,7 +115,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             push!(E_list, E_low)
             println(E_low)
             push!(gaussians, i)
-            push!(E_theoS, E_S)
+            push!(E_theory, E_S)
         end
 
         bases_ref = copy(bases)
@@ -100,7 +126,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             bij_ref = .-log.(rand_ref) * b1
             for j in 1:length(w_trans):length(rand_ref)
                 bases_ref[i:i+length(w_trans)-1] = bij_ref[j:j+length(w_trans)-1]
-                E_test = energyS(bases_ref, K_trans, w_trans)
+                E_test = S_energy(bases_ref, K_trans, w_trans)
                 if E_test < E_ref
                     E_ref = E_test
                     bases[i:i+length(w_trans)-1] = bij_ref[j:j+length(w_trans)-1]
@@ -122,7 +148,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             bij2 = -log.(rnd) * b1
             for j in 1:length(w_trans):length(rnd)
                 append!(base_test, bij2[j:j+length(w_trans)-1])
-                E0 = energyS(base_test, K_trans, w_trans)
+                E0 = S_energy(base_test, K_trans, w_trans)
                 if E0 <= E_low
                     E_low = E0
                     global base_curr = copy(bij2[j:j+length(w_trans)-1])
@@ -133,7 +159,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
             append!(base_test, base_curr)
             push!(E_list, E_low)
             push!(gaussians, i)
-            push!(E_theoS, E_S)
+            push!(E_theory, E_S)
         end
         
         println("Best convergent numerical value: ", E_list[end])
@@ -148,7 +174,7 @@ function run_simulation(num_gauss=15::Int, method=:quasirandom::Symbol, plot_res
     println("Theoretical value: ", E_S)
     println("Difference: ", abs(E_list[end] - E_S))
     p = plot(gaussians, E_list, marker=:circle, label="Numerical result")
-    plot!(p, gaussians, E_theoS, linestyle=:dash, label="Theoretical value")
+    plot!(p, gaussians, E_theory, linestyle=:dash, label="Theoretical value")
     title!(p, "S-wave convergence of Positron and two Electron System")
     xlabel!(p, "Number of Gaussians")
     ylabel!(p, "Energy [Hartree]")
