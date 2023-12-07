@@ -9,5 +9,5 @@ makedocs(
     #modules = [FewBodyPhysics]
 )
 deploydocs(
-    repo = "github.com/MartinMikkelsen/FewBodyPhysics.jl",
+    repo = "github.com/MartinMikkelsen/FewBodyPhysics.jl.git",
 )
