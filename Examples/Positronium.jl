@@ -1,6 +1,7 @@
 include("../src/coordinates.jl")
 include("../src/matrix_elements.jl")
 include("../src/sampling.jl")
+include("../src/constants.jl")
 
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 masses = [5496.918, 3670.481, 206.7686]

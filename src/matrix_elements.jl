@@ -213,7 +213,7 @@ Calculate the eigenvalues and eigenvectors of a system defined by parameters `bs
 - Tuple of eigenvalues (`E`) and eigenvectors (`c`).
 """
 function ComputeEigenSystem(bs, masses, params)
-    A = [1 / b^2 for b in bs]  #
+    A = [1 / b^2 for b in bs]  
     N, H = pion_nucleon(A, masses, params)
     E, c = eigen(H, N)
     return E, c
@@ -269,7 +269,6 @@ function OptimizeGlobalParameters(ngauss, dim, bmax, masses, params)
         bs = log.(halt) * bmax
         for j in 1:n_calls
             masses_min[1] = masses[1] .- E0S
-            println("Iteration of masses: ", j)
             resS = optimize(bs -> GetMinimumEnergy(bs, masses_min, params), bs, NelderMead(), Optim.Options())
             global optimized_bs = Optim.minimizer(resS)  
             global E0S, C0S = ComputeEigenSystem(optimized_bs, masses_min, params)

@@ -196,25 +196,3 @@ function run_simulation_nuclear(ngauss=2, dim=2, bmax=5)
     return E_list, gaussians, eigenvectors, coords, masses = OptimizeGlobalParameters(ngauss, dim, bmax, [mbare, m_π], [b, S])
 end
 
-"""
-        plot_convergence(plot_params, title, xlabel, ylabel, legendtxt)
-
-Create a scatter plot of the energy list (`"E_list"`) against the number of Gaussians (`"gaussians"`)
-from the `plot_params` dictionary. The plot is labeled according to `title`, `xlabel`, `ylabel`, 
-and `legendtxt`.
-
-# Arguments
-- `plot_params::Dict`: A dictionary containing the data to plot. It should have keys `"gaussians"` 
-    and `"E_list"` corresponding to the x and y values of the plot, respectively.
-- `title::String`: The title of the plot.
-- `xlabel::String`: The label for the x-axis.
-- `ylabel::String`: The label for the y-axis.
-- `legendtxt::String`: The label for the legend.
-"""
-function plot_convergence(plot_params, title, xlabel, ylabel, legendtxt)
-    plot(plot_params["gaussians"], plot_params["E_list"], marker = :dot, label=legendtxt)
-    title!(title)
-    xlabel!(xlabel)
-    ylabel!(ylabel)
-    display(plot())
-end

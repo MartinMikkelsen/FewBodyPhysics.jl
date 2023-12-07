@@ -4,7 +4,7 @@ include("../src/sampling.jl")
 include("../src/constants.jl")
 
 b = 3.9
-S = 41.5 
+S = 41.5
 
 energies, Gaussians, eigenvectors, coordinates, masses = run_simulation_nuclear(5,2,5)
 
@@ -31,7 +31,8 @@ end
 
 r = range(rmin,rmax, length=3000)
 
-p1 = plot(r, -Φ[:,1], title="Φ(r)", label="Φ(r)",ylabel="Φ",xlabel="r", linewidth=2) #with phase
-p2 = plot(Gaussians, energies, title="Energy = $(round(energies[end]; digits=2))", label="Convergence",ylabel="Energy",xlabel="Number of Gaussians",linewidth=2)
+p1 = plot(r, Φ[:,1], title="Φ(r)", label="Φ(r)",ylabel="Φ",xlabel="r", linewidth=2) #with phase
+Φ_prime = diff(Φ[:,1]) ./ diff(r)
+plot!(r[1:end-1], Φ_prime, label="Φ'(r)", linewidth=2)
+p2 = plot(Gaussians, energies, title="Energy = $(round(energies[end]; digits=3))", label="Convergence",ylabel="Energy",xlabel="Number of Gaussians",linewidth=2)
 
-plot(p1, p2, layout=(2,1))
