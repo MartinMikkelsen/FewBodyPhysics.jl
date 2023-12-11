@@ -2,13 +2,13 @@ using Documenter
 using FewBodyPhysics
 
 makedocs(
-    source  = "src", 
-    workdir = "build", 
+    #source  = "src", 
+    #workdir = "build", 
     sitename = "FewBodyPhysics.jl",
-    format = Documenter.HTML(),
+    #format = Documenter.HTML(),
 )
 deploydocs(
     repo = "github.com/MartinMikkelsen/FewBodyPhysics.jl.git",
-    target = "docs/build",
+    #target = "docs/build",
     branch="gh-pages",
 )
