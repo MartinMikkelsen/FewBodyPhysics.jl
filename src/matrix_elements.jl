@@ -1,6 +1,6 @@
 using Optim, LinearAlgebra
 
-export S_elements, S_wave, S_energy, P_elements, pion_nucleon, Energy_pion_photodisintegration
+export S_elements, S_wave, S_energy, P_elements, pion_nucleon, ComputeEigenSystem, GetMinimumEnergy, OptimizeGlobalParameters
 
 struct PositiveDefiniteSymmetricMatrix{T<:Real}
     matrix::Matrix{T}
@@ -160,7 +160,27 @@ function P_elements(a, b, A::PositiveDefiniteSymmetricMatrix, B, K, w=nothing)
         return M1, kinetic
     end
 end
+"""
+    pion_nucleon(alphas, masses, params)
 
+Calculate the overlap and kinetic matrices for a pion-nucleon system.
+
+# Arguments
+- `alphas`: A vector of alpha values, which are parameters related to the Gaussian basis functions.
+- `masses`: A 2-element vector containing the masses of the nucleon and the pion, respectively.
+- `params`: A 2-element vector containing the parameters `b` and `S`.
+
+# Returns
+- `overlap`: A matrix representing the overlap between the basis functions.
+- `kinetic`: A matrix representing the kinetic energy elements.
+
+# Description
+The function calculates the overlap and kinetic matrices for a pion-nucleon system using Gaussian basis functions. The overlap matrix elements are calculated as integrals of the product of two basis functions, and the kinetic matrix elements are calculated as integrals of the product of the derivatives of two basis functions.
+
+The function uses the reduced mass of the pion-nucleon system, the parameter `b` related to the width of the Gaussian functions, and the parameter `S` related to the amplitude of the Gaussian functions.
+
+The matrices are symmetric, and the diagonal elements of the overlap matrix are 1. The off-diagonal elements are calculated using the alpha parameters and the `b` and `S` parameters.
+"""
 function pion_nucleon(alphas, masses, params)
     ħc = 197.3
     b = params[1]

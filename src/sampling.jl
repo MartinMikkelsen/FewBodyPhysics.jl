@@ -1,5 +1,5 @@
 using Plots
-export corput, halton, run_simulation, run_simulation_nuclear, plot_convergence
+export corput, halton, run_simulation, run_simulation_nuclear
 
 """
 Generate the nth element of the van der Corput sequence in base b.
