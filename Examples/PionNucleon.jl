@@ -35,4 +35,4 @@ p1 = plot(r, Φ[:,1], title="Φ(r)", label="Φ(r)",ylabel="Φ",xlabel="r", linew
 Φ_prime = diff(Φ[:,1]) ./ diff(r)
 plot!(r[1:end-1], Φ_prime, label="Φ'(r)", linewidth=2)
 p2 = plot(Gaussians, energies, title="Energy = $(round(energies[end]; digits=3))", label="Convergence",ylabel="Energy",xlabel="Number of Gaussians",linewidth=2)
-
+plot(p1, p2, layout = (2, 1))
