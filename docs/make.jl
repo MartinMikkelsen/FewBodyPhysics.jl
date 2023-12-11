@@ -10,4 +10,5 @@ makedocs(
 deploydocs(
     repo = "github.com/MartinMikkelsen/FewBodyPhysics.jl.git",
     target = "docs/build",
+    branch="gh-pages",
 )
