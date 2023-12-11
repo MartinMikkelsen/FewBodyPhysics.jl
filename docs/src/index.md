@@ -11,11 +11,13 @@ julia ] add FewBodyPhysics
 ## Quick example
 
 
-```@example EulerSpiral
-using Plots, FewBodyPhysics
+```@example test
+using Plots, FewBodyPhysics, Pkg
 
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 masses = [1, 1, 1]
 K = [0 0 0; 0 1/2 0; 0 0 1/2]
-
+J, U = Ω(masses)
+K_trans = J * K * J'
+w_trans = [U' * w_list[i] for i in 1:length(w_list)]
 ```
