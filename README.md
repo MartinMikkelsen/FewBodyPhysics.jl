@@ -25,7 +25,7 @@ where `E_0` represents the ground state energy, `\Psi` is the trail wave functio
 
 The ECG function for an N-particle system is given by:
 
-$$\psi_G = \exp\left(-\frac{1}{2} \sum_{i<j}^{N} \alpha_{ij} (r_i - r_j)^2\right),$$
+$$\psi_G = \exp\big(-\frac{1}{2} \sum_{i<j}^{N} \alpha_{ij} (r_i - r_j)^2\big),$$
 where `r_i` and `r_j` are the position vectors of particles `i` and `j`, respectively, while `\alpha_{ij}` are the variational parameters. 
 To use this package, import it in your Julia script:
 
