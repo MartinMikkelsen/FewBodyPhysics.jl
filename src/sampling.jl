@@ -1,4 +1,5 @@
 using Plots
+
 export corput, halton, run_simulation, run_simulation_nuclear
 
 """
@@ -53,7 +54,7 @@ Run the simulation for a quantum system using quasi-random or pseudo-random meth
 # Notes
 - The function prints various convergence information and, if `plot_result` is true, displays a plot of the numerical result against the theoretical value.
 """
-function run_simulation(num_gauss=25::Int, method=:quasirandom::Symbol, plot_result=true::Bool)
+function run_simulation(num_gauss::Int, method::Symbol, w_trans::Array, K_trans::Array, plot_result::Bool=true)
     b1 = 10
     E_list = []
     gaussians = []
@@ -164,9 +165,9 @@ function run_simulation(num_gauss=25::Int, method=:quasirandom::Symbol, plot_res
     println("Best convergent numerical value: ", E_list[end])
     println("Theoretical value: ", E_S)
     println("Difference: ", abs(E_list[end] - E_S))
-    p = plot(gaussians, E_list, marker=:circle, label="Numerical result")
-    plot!(p, gaussians, E_theory, linestyle=:dash, label="Theoretical value")
-    title!(p, "S-wave convergence of Positron and two Electron System")
+    p = plot(gaussians, E_list, marker=:circle, label="Numerical result",linewidth=2)
+    plot!(p, gaussians, E_theory, linestyle=:dash, label="Theoretical value",linewidth=2)
+    title!(p, "S-wave convergence")
     xlabel!(p, "Number of Gaussians")
     ylabel!(p, "Energy [Hartree]")
 

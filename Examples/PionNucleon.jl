@@ -1,7 +1,4 @@
-include("../src/coordinates.jl")
-include("../src/matrix_elements.jl")
-include("../src/sampling.jl")
-include("../src/constants.jl")
+using FewBodyPhysics
 
 b = 3.9
 S = 41.5

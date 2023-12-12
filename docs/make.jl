@@ -1,12 +1,13 @@
-using Documenter, FewBodyPhysics
+using Documenter, Pkg
+using FewBodyPhysics
+
 
 push!(LOAD_PATH,"../src/")
 makedocs(
     source  = "src", 
-    #workdir = "build", 
     sitename = "FewBodyPhysics.jl",
-    #format = Documenter.HTML(),
-    #root = joinpath(dirname(pathof(FewBodyPhysics)), "..", "docs"),
+    modules = [FewBodyPhysics],
+
 )
 deploydocs(
     repo = "github.com/MartinMikkelsen/FewBodyPhysics.jl.git",
