@@ -1,0 +1,6 @@
+*.pdf
+src/test.py
+src/test.jl
+.DS_Store
+.vscode
+docs/build/
