@@ -37,7 +37,7 @@ Calculate matrix elements for overlap, kinetic energy, and optionally the Coulom
 # Notes
 - The Coulomb term is calculated only if the weight vectors `w` are specified.
 """
-S_elements(A, B, K, w=nothing) = begin
+function S_elements(A, B, K, w=nothing)
     dim = size(A, 1)
     Coulomb_term = 0.0
     D = A + B
@@ -46,8 +46,8 @@ S_elements(A, B, K, w=nothing) = begin
     trace = tr(B * K * A * R)
     if !isnothing(w)
         for k in 1:length(w)
-            β = 1 / (w[k]' * R * w[k])
-            Coulomb_term += (k == 3 ? 2 : -2) * sqrt(β / π) * M0
+            β = 1 ./((w[k])' * R * w[k])
+            Coulomb_term += (k == 3 ? 2 : -2) .* sqrt(β / π) .* M0
         end
         return M0, trace, Coulomb_term
     else
@@ -152,7 +152,7 @@ function P_elements(a, b, A::PositiveDefiniteSymmetricMatrix, B, K, w=nothing)
     kinetic += (a' * (R * B * K * A * R) * b) * M0
 
     if w !== nothing
-        β = 1 / ((w' * R * w)[1])  # Coulomb terms
+        β = 1 ./ ((w' * R * w)[1])  # Coulomb terms
         Coulomb_term = 2 * sqrt(β / π) * M1
         Coulomb_term += -sqrt(β / π) * β / 3 * (a' * (R * w * w' * R) * b) * M0 
         return M1, kinetic, Coulomb_term

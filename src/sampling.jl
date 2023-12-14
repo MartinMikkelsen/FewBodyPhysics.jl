@@ -58,9 +58,8 @@ function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Array, K_
     b1 = 10
     E_list = []
     gaussians = []
-    E_theory = []
     bij = []
-    E_low = Inf
+    E_low = 1e10
     global bases = []
     global base_test = []
     if method == :quasirandom
@@ -183,7 +182,7 @@ Prints the final energy of the simulation.
 ```julia
 run_simulation_nuclear(3, 3, 10)
 """
-function run_simulation_nuclear(ngauss=2, dim=2, bmax=5)
-    return E_list, gaussians, eigenvectors, coords, masses = OptimizeGlobalParameters(ngauss, dim, bmax, [mbare, m_π], [b, S])
+function run_simulation_nuclear(ngauss, dim, bmax, masses, params)
+    return E_list, gaussians, eigenvectors, coords, masses = OptimizeGlobalParameters(ngauss, dim, bmax, masses, params)
 end
 

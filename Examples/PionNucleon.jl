@@ -1,9 +1,12 @@
-using FewBodyPhysics
+using Plots
 
 b = 3.9
 S = 41.5
 
-energies, Gaussians, eigenvectors, coordinates, masses = run_simulation_nuclear(5,2,5)
+params = [b, S]
+masses = [(m_p+m_n)/2, m_π]
+
+energies, Gaussians, eigenvectors, coordinates, masses = run_simulation_nuclear(5,2,5,masses,params)
 
 rmax = 5 * b
 rmin = 0.01 * b

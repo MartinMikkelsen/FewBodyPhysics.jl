@@ -1,5 +1,8 @@
 # FewBodyPhysics
 
+[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://martinmikkelsen.github.io/FewBodyPhysics.jl/dev/)
+
+
 [![Build Status](https://github.com/MartinMikkelsen/FewBodyPhysics.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MartinMikkelsen/FewBodyPhysics.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 
@@ -12,8 +15,6 @@ Welcome to FewBodyPhysics.jl, a Julia package dedicated to the study and simulat
 Correlated Gaussian Basis Functions: Employs explicitly correlated Gaussian functions to accurately represent particle correlations.
 - Wide Applicability: Suitable for a range of systems, including small atoms, molecules, and exotic quantum states.
 - High Precision: Offers detailed and precise modeling capabilities.
-
-To use this package, import it in your Julia script:
 
 ## Install
 
