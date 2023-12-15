@@ -163,7 +163,7 @@ function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Array, K_
     if plot_result==true
         display(p)
     end 
-    return p, E_list[end]
+    return p, E_list[end], bases
 end
 """
     run_simulation_nuclear(ngauss=2, dim=2, bmax=5)

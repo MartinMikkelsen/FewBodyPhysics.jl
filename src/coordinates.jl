@@ -83,7 +83,7 @@ Calculate the weighted sum of the element-wise product of vectors `a` and `b` us
 - `a` and `b` are typically shift vectors in the configuration space of a few-body system.
 - If `mat` is provided, its dimensions must match the number of elements in `a` and `b`.
 """
-shift(a, b, mat=nothing) = begin
+shift(a, b, mat) = begin
     n = size(a, 2)
     sum_val = 0.0
     mat = isnothing(mat) ? I : mat
@@ -111,8 +111,7 @@ Generate a weight vector for the i-th and j-th coordinates in a space of dimensi
 # Notes
 - This function is useful for generating basis vectors in few-body coordinate transformations.
 """
-w_gen(dim, i, j) = dim == 1 ? [1] : [k == i && 1 || k == j && -1 || 0 for k in 1:dim]
-
+w_gen(dim, i, j) = dim == 1 ? [1] : [Int(k == i) - Int(k == j) for k in 1:dim]
 """
     transform_coordinates(Ω::Matrix{Float64}, r::Vector{Float64})
 
@@ -147,7 +146,7 @@ Transform the coordinates `x` back to the original system using the inverse of t
 # Notes
 - This function applies the inverse of matrix `U` to the coordinate matrix `x`.
 """
-function transform_back(Ω::Matrix{Float64},x::Matrix{Float64})
+function transform_back(Ω::Matrix, x::Matrix, masses::Vector)
     J, U = Ω(masses)
     return U \ x
 end

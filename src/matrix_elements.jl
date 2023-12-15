@@ -37,7 +37,7 @@ Calculate matrix elements for overlap, kinetic energy, and optionally the Coulom
 # Notes
 - The Coulomb term is calculated only if the weight vectors `w` are specified.
 """
-function S_elements(A, B, K, w=nothing)
+function S_elements(A::Matrix, B::Matrix, K::Matrix, w=nothing)
     dim = size(A, 1)
     Coulomb_term = 0.0
     D = A + B
@@ -72,7 +72,7 @@ Calculate the wavefunction overlap, kinetic energy, and optionally Coulomb inter
 # Notes
 - The Coulomb matrix is computed only if the weight vectors `w` are specified.
 """
-S_wave(α, K, w=nothing) = begin
+function S_wave(α, K, w=nothing)
     len = length(α)
     α = transform_list(α)
     overlap = zeros(len, len)
@@ -282,6 +282,7 @@ function OptimizeGlobalParameters(ngauss, dim, bmax, masses, params)
 
     global E0S = 0.0
     masses_min = copy(masses)
+    masses_min = convert(Vector{Float64}, masses_min)  # Convert to floating-point array
     n_calls = 2
 
     for i in 1:ngauss
