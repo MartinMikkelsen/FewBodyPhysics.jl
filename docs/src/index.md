@@ -18,7 +18,7 @@ The masses of the three constituents are `m_i = {1, 1, 1}` and the charges `q_i 
 
 ### Psudorandom
 
-```@example
+```@example 1
 using Plots, FewBodyPhysics
 
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
@@ -27,13 +27,18 @@ K = [1/2 0 0; 0 1/2 0; 0 0 1/2]
 J, U = Ω(masses)
 K_transformed = J * K * J'
 w_transformed = [U' * w_list[i] for i in 1:length(w_list)]
+Theortical_value = -0.2620050702328
 
 p, Energy = run_simulation(50,:psudorandom, w_transformed, K_transformed)
 plot(p)
 ```
+With a difference in energy
+```@example 1
+@show Theortical_value - Energy
+```
 ### Quasirandom
 And similarly for a quasirandom
-```@example
+```@example 2
 using Plots, FewBodyPhysics
 
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
@@ -42,10 +47,16 @@ K = [1/2 0 0; 0 1/2 0; 0 0 1/2]
 J, U = Ω(masses)
 K_transformed = J * K * J'
 w_transformed = [U' * w_list[i] for i in 1:length(w_list)]
+Theortical_value = -0.2620050702328
 
 p, Energy = run_simulation(50,:quasirandom, w_transformed, K_transformed)
 plot(p)
 ```
+With a difference in energy
+```@example 2
+@show Theortical_value - Energy
+```
+
 ### Custom system
 
 One of the strengths of this numerical method is that all the matrix elements are analytical. Consider the following example from [Threshold photoproduction of neutral pions off protons in nuclear model with explicit mesons](https://arxiv.org/pdf/2209.12071.pdf). 
@@ -84,9 +95,7 @@ end
 
 r = range(rmin,rmax, length=3000)
 
-p1 = plot(r, Φ[:,1], title="Φ(r)", label="Φ(r)",ylabel="Φ",xlabel="r", linewidth=2) #with phase
+plot(r, Φ[:,1], title="Φ(r)", label="Φ(r)",ylabel="Φ",xlabel="r", linewidth=2) #with phase
 Φ_prime = diff(Φ[:,1]) ./ diff(r)
 plot!(r[1:end-1], Φ_prime, label="Φ'(r)", linewidth=2)
-p2 = plot(Gaussians, energies, title="Energy = $(round(energies[end]; digits=3))", label="Convergence",ylabel="Energy",xlabel="Number of Gaussians",linewidth=2)
-plot(p1, p2, layout = (2, 1))
 ```

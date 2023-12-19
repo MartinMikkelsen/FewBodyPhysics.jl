@@ -2,10 +2,6 @@
 
 [![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://martinmikkelsen.github.io/FewBodyPhysics.jl/dev/)
 
-
-[![Build Status](https://github.com/MartinMikkelsen/FewBodyPhysics.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MartinMikkelsen/FewBodyPhysics.jl/actions/workflows/CI.yml?query=branch%3Amain)
-
-
 Welcome to FewBodyPhysics.jl, a Julia package dedicated to the study and simulation of quantum mechanical few-body systems using explicitly correlated Gaussian methods. This package offers a powerful computational framework to model and analyze various quantum systems, from atoms and molecules to light nuclei and quantum dots.
 
 
