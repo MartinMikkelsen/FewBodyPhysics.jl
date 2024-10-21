@@ -1,7 +1,7 @@
 name = "FewBodyPhysics"
 uuid = "dd57e2ab-7dae-448b-a136-57ab9eca4234"
 authors = ["Martin Mikkelsen"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
