@@ -13,14 +13,12 @@ function corput(n, b=3)
     return q
 end
 
-# Generate the nth d-dimensional point in the Halton sequence
 function halton(n, d)
     base = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281]
     @assert d <= length(base) "Dimension exceeds available bases."
     return [corput(n, base[i]) for i in 1:d]
 end
 
-# Helper function for calculating energies in quasi-random methods
 function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method::Symbol)
     E_list, bases, gaussians = Float64[], [], Int[]
     E_low = Inf
@@ -31,7 +29,7 @@ function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method:
 
         for j in 1:length(w_transformed):length(hal)
             base_segment = bij[j:j+length(w_transformed)-1]
-            E0 = S_energy(base_segment, K_transformed, w_transformed)
+            E0 = S_energy(Float64(base_segment), K_transformed, w_transformed)
             if E0 < best_energy
                 best_energy = E0
                 best_base = copy(base_segment)
@@ -47,14 +45,41 @@ function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method:
     return E_list, bases, gaussians, E_low
 end
 
-# Main simulation function
 function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Vector{Float64}}, K_transformed::Matrix{Float64}, plot_result::Bool=true)
     b1 = 10.0
+    E_list = Float64[]
+    gaussians = Int[]
+    bij = Float64[]
+    E_low = 1e10
+    bases = Vector{Vector{Float64}}()  # Initialize as Vector{Vector{Float64}}
+    base_test = Float64[]  # Initialize as Vector{Float64} to avoid Any type issues
+    base_curr = Float64[]  # Initialize `base_curr` as an empty vector
 
-    # Choose appropriate method
     if method == :quasirandom
         println("---------QUASI-RANDOM METHOD---------")
-        E_list, bases, gaussians, E_low = calculate_energies(num_gauss, w_transformed, K_transformed, b1, method)
+
+        for i in 1:num_gauss
+            hal = halton(i, 15 * length(w_transformed))
+            bij = Float64.(-log.(hal) .* b1)  # Ensure bij is Vector{Float64}
+
+            for j in 1:length(w_transformed):length(hal)
+                append!(base_test, bij[j:j+length(w_transformed)-1])
+
+                # Call S_energy with correctly typed base_test
+                E0 = S_energy(Float64.(base_test), K_transformed, w_transformed)
+
+                if E0 <= E_low
+                    E_low = E0
+                    base_curr = copy(Float64.(bij[j:j+length(w_transformed)-1]))  # Ensure base_curr is Vector{Float64}
+                end
+                base_test = base_test[1:end-length(w_transformed)]  # Reset base_test
+            end
+            push!(bases, base_curr)  # Append to bases as Vector{Float64}
+            append!(base_test, base_curr)
+            push!(E_list, E_low)
+            println(E_low)
+            push!(gaussians, i)
+        end
 
     elseif method == :quasirandomrefined
         println("---------QUASI-RANDOM METHOD WITH REFINEMENT---------")
@@ -96,6 +121,9 @@ function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Ve
 
     return p, E_list[end], bases
 end
+
+
+
 
 """
 Run a nuclear simulation and print the final energy.

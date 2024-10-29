@@ -115,7 +115,7 @@ function S_energy(bij::Vector{Float64}, K::Matrix{Float64}, w::Vector{Vector{Flo
     overlap, kinetic, Coulomb = S_wave(α, K, w)
     H = kinetic + Coulomb
     E, _ = eigen(H, overlap)  
-    E0 = minimum(real(E)) 
+    E0 = minimum(real(E))  
     return E0
 end
 
