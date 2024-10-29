@@ -30,6 +30,12 @@ OptimizeGlobalParameters
 ```@docs
 corput
 halton
+calculate_energies
 run_simulation
 run_simulation_nuclear
+```
+## Constants
+
+```@docs
+μ
 ```

@@ -1,6 +1,6 @@
 using Plots
 
-export corput, halton, run_simulation, run_simulation_nuclear
+export corput, halton, calculate_energies, run_simulation, run_simulation_nuclear
 """
     corput(n::Int, b::Int=3) -> Float64
 
