@@ -1,104 +1,150 @@
 using LinearAlgebra
 
-export Ω, A_generate, transform_list, shift, w_gen, transform_coordinates, transform_back
-"""
-    Ω(masses::Array)
+export ParticleSystem, jacobi_transform, generate_A_matrix, transform_list, shift_vectors, generate_weight_vector, transform_coordinates, inverse_transform_coordinates
 
-Calculate the Jacobi transformation matrix `J` and its inverse `U` for a system of particles with specified `masses`.
+"""
+    ParticleSystem(masses::Vector{Float64})
+
+A data structure representing a system of particles, storing their masses and associated Jacobi transformation matrices for coordinate transformations.
+
+# Fields
+- `masses::Vector{Float64}`: A vector containing the masses of the particles.
+- `J::Matrix{Float64}`: The Jacobi transformation matrix, used to convert particle coordinates into Jacobi coordinates.
+- `U::Matrix{Float64}`: The pseudoinverse of the Jacobi transformation matrix `J`, used to transform Jacobi coordinates back to the particle coordinate system.
+
+# Constructor
+- `ParticleSystem(masses::Vector{Float64})`: Constructs a new `ParticleSystem` instance.
+  - **Arguments**:
+    - `masses`: A vector of particle masses. At least two masses are required.
+"""
+struct ParticleSystem
+    masses::Vector{Float64}
+    J::Matrix{Float64}
+    U::Matrix{Float64}
+
+    function ParticleSystem(masses::Vector{Float64})
+        @assert length(masses) ≥ 2 "At least two masses are required for a particle system."
+        J, U = jacobi_transform(masses)
+        new(masses, J, U)
+    end
+end
+
+"""
+    jacobi_transform(masses::Vector{Float64})::Tuple{Matrix{Float64}, Matrix{Float64}}
+
+Compute the Jacobi transformation matrices `J` and `U` for a system of particles with specified masses.
 
 # Arguments
-- `masses::Array`: A vector of masses for the particles.
+- `masses::Vector{Float64}`: A vector of masses for the particles.
 
 # Returns
-- `J::Matrix`: The Jacobi transformation matrix.
-- `U::Matrix`: The inverse of the Jacobi transformation matrix.
+- `(J::Matrix{Float64}, U::Matrix{Float64})`: The Jacobi transformation matrix and its pseudoinverse.
 
 # Notes
-- For systems with more than one particle, the returned matrices exclude the last row/column for proper dimensionality in transformations.
+- The matrices `J` and `U` are used to transform between particle coordinates and Jacobi coordinates.
+- The pseudoinverse `U` is used instead of the inverse to handle cases where `J` is not square.
 """
-Ω(masses::Array) = begin
-    dim = size(masses, 1)
-    J = zeros(dim, dim)
-    for i in 1:dim
-        sum_m = sum(masses[1:i])
-        for j in 1:dim
-            J[i, j] = j == i + 1 ? -1 : i + 1 < j ? 0 : masses[j] / sum_m
-            J[i, j] = isnan(J[i, j]) ? 1 : J[i, j]
+function jacobi_transform(masses::Vector{Float64})::Tuple{Matrix{Float64}, Matrix{Float64}}
+    N = length(masses)
+    @assert N ≥ 2 "At least two masses are required for Jacobi transformation."
+    J = zeros(Float64, N - 1, N)
+
+    for k in 1:N - 1
+        mk = masses[k + 1]
+        Mk = sum(masses[1:k])
+        μk = sqrt(mk * Mk / (mk + Mk))
+        for j in 1:N
+            if j ≤ k
+                J[k, j] = μk * masses[j] / Mk
+            elseif j == k + 1
+                J[k, j] = -μk
+            else
+                J[k, j] = 0.0
+            end
         end
     end
-    U = inv(J)
-    U = dim > 1 ? U[:, 1:end-1] : U
-    J = dim > 1 ? J[1:end-1, :] : J
+
+    U = pinv(J)
     return J, U
 end
-"""
-    A_generate(bij::Array, w_list::Array)
 
-Generate a matrix A for Gaussian basis functions given width parameters `bij` and weight vectors `w_list`.
+"""
+    generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}})::Matrix{Float64}
+
+Generate the matrix `A` for Gaussian basis functions given width parameters `bij` and weight vectors `w_list`.
 
 # Arguments
-- `bij::Array`: A vector of width parameters for the Gaussian basis functions.
-- `w_list::Array`: A list of weight vectors.
+- `bij::Vector{Float64}`: A vector of width parameters for the Gaussian basis functions.
+- `w_list::Vector{Vector{Float64}}`: A list of weight vectors.
 
 # Returns
-- `Matrix`: The sum of weighted outer products of `w_list`, scaled by `bij`.
+- `A::Matrix{Float64}`: The sum of weighted outer products of `w_list`, scaled by `bij`.
 
 # Notes
-- This function is used to construct basis elements for the expansion of few-body wavefunctions.
+- This function constructs the `A` matrix used in the correlated Gaussian method.
 """
-A_generate(bij, w_list::Array) = begin
-    dim = length(w_list)
-    mat_list = [(w_list[i] * w_list[i]') ./ (bij[i]^2) for i in 1:dim]
-    return sum(mat_list)
+function generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}})::Matrix{Float64}
+    @assert length(bij) == length(w_list) "Length of `bij` and `w_list` must be equal."
+    dim = length(w_list[1])
+    A = zeros(Float64, dim, dim)
+    for i in 1:length(bij)
+        w = w_list[i]
+        @assert length(w) == dim "All weight vectors must have the same dimension."
+        A += (w * w') / (bij[i]^2)
+    end
+    return A
 end
 
 """
-    transform_list(α::Array)
+    transform_list(α::Vector{Float64})::Vector{Matrix{Float64}}
 
 Transform a list of scalar values `α` into a list of 1x1 matrices.
 
 # Arguments
-- `α::Array`: A list of scalar values.
+- `α::Vector{Float64}`: A list of scalar values.
 
 # Returns
-- `Array`: A list of 1x1 matrices where each matrix contains one of the scalar values from `α`.
+- `Array{Matrix{Float64}}`: A list of 1x1 matrices where each matrix contains one of the scalar values from `α`.
 """
-function transform_list(α::Array)
-    return[ones(1, 1) .* α[i] for i in 1:length(α)]
+function transform_list(α::Vector{Float64})::Vector{Matrix{Float64}}
+    return [Matrix{Float64}([α_i]) for α_i in α]
 end
+
 """
-    shift(a::Array, b::Array, mat::Matrix=I)
+    shift_vectors(a::Matrix{Float64}, b::Matrix{Float64}, mat::Union{Nothing, Matrix{Float64}}=nothing)::Float64
 
 Calculate the weighted sum of the element-wise product of vectors `a` and `b` using matrix `mat`.
 
 # Arguments
-- `a::Array`: A vector or matrix.
-- `b::Array`: A vector or matrix of the same size as `a`.
-- `mat::Matrix`: An optional matrix to weight the product (default is the identity matrix).
+- `a::Matrix{Float64}`: A matrix where each column is a vector `a_i`.
+- `b::Matrix{Float64}`: A matrix where each column is a vector `b_j`.
+- `mat::Union{Nothing, Matrix{Float64}}`: An optional matrix to weight the product (default is the identity matrix).
 
 # Returns
-- `Float64`: The weighted sum of products.
+- `sum_val::Float64`: The weighted sum of products.
 
 # Notes
-- `a` and `b` are typically shift vectors in the configuration space of a few-body system.
-- If `mat` is provided, its dimensions must match the number of elements in `a` and `b`.
+- The matrices `a` and `b` should have the same dimensions.
 """
-shift(a, b, mat) = begin
+function shift_vectors(a::Matrix{Float64}, b::Matrix{Float64}, mat::Union{Nothing, Matrix{Float64}}=nothing)::Float64
     n = size(a, 2)
+    @assert n == size(b, 2) "Matrices `a` and `b` must have the same number of columns."
+    mat = mat === nothing ? I(n) : mat
+    @assert size(mat) == (n, n) "Matrix `mat` must be square with size equal to number of vectors."
+
     sum_val = 0.0
-    mat = isnothing(mat) ? I : mat
-    @assert n == size(mat, 1) "ERROR! Matrix shape does not match number of shift vectors."
     for i in 1:n
         for j in 1:n
-            sum_val += mat[i, j] * (a[:, i]' * b[:, j])
+            sum_val += mat[i, j] * dot(view(a, :, i), view(b, :, j))
         end
     end
     return sum_val
 end
-"""
-    w_gen(dim::Int, i::Int, j::Int)
 
-Generate a weight vector for the i-th and j-th coordinates in a space of dimension `dim`.
+"""
+    generate_weight_vector(dim::Int, i::Int, j::Int)::Vector{Int}
+
+Generate a weight vector for the `i`-th and `j`-th coordinates in a space of dimension `dim`.
 
 # Arguments
 - `dim::Int`: The dimension of the space.
@@ -106,47 +152,47 @@ Generate a weight vector for the i-th and j-th coordinates in a space of dimensi
 - `j::Int`: The index for the negative element in the weight vector.
 
 # Returns
-- `Vector{Int}`: A vector with 1 at the i-th position, -1 at the j-th position, and 0 elsewhere.
-
-# Notes
-- This function is useful for generating basis vectors in few-body coordinate transformations.
+- `w::Vector{Int}`: A vector with 1 at the `i`-th position, -1 at the `j`-th position, and 0 elsewhere.
 """
-w_gen(dim, i, j) = dim == 1 ? [1] : [Int(k == i) - Int(k == j) for k in 1:dim]
-"""
-    transform_coordinates(Ω::Matrix{Float64}, r::Vector{Float64})
+function generate_weight_vector(dim::Int, i::Int, j::Int)::Vector{Int}
+    @assert 1 ≤ i ≤ dim "Index `i` must be between 1 and $dim."
+    @assert 1 ≤ j ≤ dim "Index `j` must be between 1 and $dim."
+    w = zeros(Int, dim)
+    w[i] = 1
+    w[j] = -1
+    return w
+end
 
-Transform the coordinates `r` of a system using the Jacobi matrix `Ω`.
+"""
+    transform_coordinates(J::Matrix{Float64}, r::Vector{Float64})::Vector{Float64}
+
+Transform the coordinates `r` of a system using the Jacobi matrix `J`.
 
 # Arguments
-- `Ω::Matrix{Float64}`: The Jacobi transformation matrix.
+- `J::Matrix{Float64}`: The Jacobi transformation matrix.
 - `r::Vector{Float64}`: The coordinates to be transformed.
 
 # Returns
-- `Vector{Float64}`: The transformed coordinates.
-
-# Notes
-- This function applies the inverse of Jacobi matrix `J` to the coordinate vector `r`.
+- `x::Vector{Float64}`: The transformed coordinates.
 """
-function transform_coordinates(Ω::Matrix{Float64}, r::Vector{Float64})
-    J, U = Ω(masses)
-    return J \ r
+function transform_coordinates(J::Matrix{Float64}, r::Vector{Float64})::Vector{Float64}
+    @assert size(J, 2) == length(r) "Matrix `J` columns must match length of vector `r`."
+    return J * r
 end
-"""
-    transform_back(Ω::Matrix{Float64}, x::Matrix{Float64})
 
-Transform the coordinates `x` back to the original system using the inverse of the Jacobi matrix `Ω`.
+"""
+    inverse_transform_coordinates(U::Matrix{Float64}, x::Vector{Float64})::Vector{Float64}
+
+Transform the coordinates `x` back to the original system using the inverse of the Jacobi matrix.
 
 # Arguments
-- `Ω::Matrix{Float64}`: The Jacobi transformation matrix.
-- `x::Matrix{Float64}`: The coordinates to be transformed back.
+- `U::Matrix{Float64}`: The inverse Jacobi transformation matrix.
+- `x::Vector{Float64}`: The coordinates in Jacobi space.
 
 # Returns
-- `Matrix{Float64}`: The coordinates transformed back to the original system.
-
-# Notes
-- This function applies the inverse of matrix `U` to the coordinate matrix `x`.
+- `r::Vector{Float64}`: The coordinates transformed back to the original system.
 """
-function transform_back(Ω::Matrix, x::Matrix, masses::Vector)
-    J, U = Ω(masses)
-    return U \ x
+function inverse_transform_coordinates(U::Matrix{Float64}, x::Vector{Float64})::Vector{Float64}
+    @assert size(U, 1) == length(x) "Matrix `U` rows must match length of vector `x`."
+    return U * x
 end

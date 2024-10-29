@@ -1,10 +1,11 @@
 using Plots
+using .FewBodyPhysics
 
 b = 3.9
 S = 41.5
 
 params = [b, S]
-masses = [(m_p+m_n)/2, m_π]
+masses = [(m_p+m_n)/2, m_pi]
 
 energies, Gaussians, eigenvectors, coordinates, masses = run_simulation_nuclear(5,2,5,masses,params)
 
@@ -16,7 +17,7 @@ grid_points = range(rmin,rmax,3000)
 
 Φ = zeros(length(grid_points), length(coordinates))
 
-for i in 1:length(coordinates)
+for i in eachindex(coordinates)
     local ϕ = zeros(length(grid_points))
     ϕ_sum = zeros(length(grid_points))
     rs = coordinates[i]

@@ -2,13 +2,14 @@
 
 ## Coordinates
 ```@docs
-Ω
-A_generate
+ParticleSystem
+jacobi_transform
+generate_A_matrix
 transform_list
-shift
-w_gen
+shift_vectors
+generate_weight_vector
 transform_coordinates
-transform_back
+inverse_transform_coordinates
 ```
 
 ## Matrix elements
@@ -29,6 +30,12 @@ OptimizeGlobalParameters
 ```@docs
 corput
 halton
+calculate_energies
 run_simulation
 run_simulation_nuclear
+```
+## Constants
+
+```@docs
+μ
 ```

@@ -1,165 +1,166 @@
-using Optim, LinearAlgebra
+using LinearAlgebra
+using Optim
 
 export S_elements, S_wave, S_energy, P_elements, pion_nucleon, ComputeEigenSystem, GetMinimumEnergy, OptimizeGlobalParameters
 
 struct PositiveDefiniteSymmetricMatrix{T<:Real}
     matrix::Matrix{T}
-
-    function PositiveDefiniteSymmetricMatrix(mat::Matrix{T}) where T <: Real
-        if size(mat, 1) != size(mat, 2)
-            throw(ArgumentError("The matrix must be square."))
-        end
-        if !issymmetric(mat)
-            throw(ArgumentError("The matrix must be symmetric."))
-        end
-        if !isposdef(mat)
-            throw(ArgumentError("The matrix must be positive definite."))
-        end
-        return new{T}(mat)
-    end
 end
+
+function PositiveDefiniteSymmetricMatrix(mat::Matrix{T}) where T <: Real
+    @assert size(mat, 1) == size(mat, 2) "Matrix must be square."
+    @assert issymmetric(mat) "Matrix must be symmetric."
+    @assert isposdef(mat) "Matrix must be positive definite."
+    return PositiveDefiniteSymmetricMatrix{T}(mat)
+end
+
 """
-    S_elements(A, B, K, w=nothing)
+    S_elements(A::Matrix{Float64}, B::Matrix{Float64}, K::Matrix{Float64}, w::Union{Nothing, Vector{Vector{Float64}}}=nothing)
 
 Calculate matrix elements for overlap, kinetic energy, and optionally the Coulomb term.
 
 # Arguments
-- `A::Matrix`: Matrix representing the width of Gaussian basis functions for state `i`.
-- `B::Matrix`: Matrix representing the width of Gaussian basis functions for state `j`.
-- `K::Matrix`: Kinetic energy matrix.
-- `w::Vector` (optional): Weight vectors for the particles involved.
+- `A`: Width matrix of Gaussian basis functions for state `i`.
+- `B`: Width matrix of Gaussian basis functions for state `j`.
+- `K`: Kinetic energy matrix.
+- `w` (optional): List of weight vectors for the particles involved.
 
 # Returns
-- `M0::Float64`: The overlap matrix element between the two states.
-- `tra::Float64`: The trace used in the kinetic energy calculation.
-- `Coulomb_term::Float64` (optional): The Coulomb interaction term, if weight vectors `w` are provided.
-
-# Notes
-- The Coulomb term is calculated only if the weight vectors `w` are specified.
+- `M0`: The overlap matrix element between the two states.
+- `trace`: The trace used in the kinetic energy calculation.
+- `Coulomb_term` (optional): The Coulomb interaction term, if weight vectors `w` are provided.
 """
-function S_elements(A::Matrix, B::Matrix, K::Matrix, w=nothing)
+function S_elements(A::Matrix{Float64}, B::Matrix{Float64}, K::Matrix{Float64}, w::Union{Nothing, Vector{Vector{Float64}}}=nothing)
     dim = size(A, 1)
-    Coulomb_term = 0.0
     D = A + B
+    @assert isposdef(D) "Matrix D must be positive definite."
     R = inv(D)
-    M0 = (π^dim / det(D))^(3.0 / 2)
+    detD = det(D)
+    @assert detD > 0 "Determinant of D must be positive."
+    M0 = (π^dim / detD)^(1.5)
     trace = tr(B * K * A * R)
-    if !isnothing(w)
+    Coulomb_term = 0.0
+    if w !== nothing
         for k in 1:length(w)
-            β = 1 ./((w[k])' * R * w[k])
-            Coulomb_term += (k == 3 ? 2 : -2) .* sqrt(β / π) .* M0
+            wk = w[k]
+            β = 1.0 / (wk' * R * wk)
+            factor = ifelse(k == 3, 2.0, -2.0)
+            Coulomb_term += factor * sqrt(β / π) * M0
         end
         return M0, trace, Coulomb_term
     else
         return M0, trace
     end
 end
-"""
-    S_wave(α, K, w=nothing)
 
-Calculate the wavefunction overlap, kinetic energy, and optionally Coulomb interaction matrices for a given set of basis functions.
+"""
+    S_wave(α::Vector{Matrix{Float64}}, K::Matrix{Float64}, w::Union{Nothing, Vector{Vector{Float64}}}=nothing)
+
+Calculate the overlap, kinetic energy, and optionally Coulomb interaction matrices for a given set of basis functions.
 
 # Arguments
-- `α::Vector`: A list of scalar width parameters for the Gaussian basis functions.
-- `K::Matrix`: Kinetic energy matrix.
-- `w::Vector` (optional): Weight vectors for the particles involved.
+- `α`: A list of width matrices for the Gaussian basis functions.
+- `K`: Kinetic energy matrix.
+- `w` (optional): List of weight vectors for the particles involved.
 
 # Returns
-- `overlap::Matrix`: The overlap matrix for the basis functions.
-- `kinetic::Matrix`: The kinetic energy matrix for the basis functions.
-- `Coulomb::Matrix` (optional): The Coulomb interaction matrix, if weight vectors `w` are specified.
-
-# Notes
-- The Coulomb matrix is computed only if the weight vectors `w` are specified.
+- `overlap`: The overlap matrix for the basis functions.
+- `kinetic`: The kinetic energy matrix for the basis functions.
+- `Coulomb`: The Coulomb interaction matrix, if weight vectors `w` are specified.
 """
-function S_wave(α, K, w=nothing)
+function S_wave(α::Vector{Matrix{Float64}}, K::Matrix{Float64}, w::Union{Nothing, Vector{Vector{Float64}}}=nothing)
     len = length(α)
-    α = transform_list(α)
-    overlap = zeros(len, len)
-    kinetic = zeros(len, len)
-    Coulomb = zeros(len, len)
+    overlap = zeros(Float64, len, len)
+    kinetic = zeros(Float64, len, len)
+    Coulomb = w !== nothing ? zeros(Float64, len, len) : nothing
     for i in 1:len
         for j in 1:i
             A, B = α[i], α[j]
-            M0, trace, Coulomb_term = S_elements(A, B, K, w)
+            if w !== nothing
+                M0, trace, Coulomb_term = S_elements(A, B, K, w)
+                Coulomb[i, j] = Coulomb[j, i] = Coulomb_term
+            else
+                M0, trace = S_elements(A, B, K)
+            end
             overlap[i, j] = overlap[j, i] = M0
             kinetic[i, j] = kinetic[j, i] = 6 * trace * M0
-            Coulomb[i, j] = Coulomb[j, i] = Coulomb_term
         end
     end
     return overlap, kinetic, Coulomb
 end
+
 """
-    S_energy(bij, K, w)
+    S_energy(bij::Vector{Float64}, K::Matrix{Float64}, w::Vector{Vector{Float64}})
 
 Compute the ground state energy of the system using the basis functions specified by the width parameters `bij`.
 
 # Arguments
-- `bij::Vector`: A list of width parameters for the Gaussian basis functions.
-- `K::Matrix`: Kinetic energy matrix.
-- `w::Vector`: Weight vectors for the particles involved.
+- `bij`: A vector of width parameters for the Gaussian basis functions.
+- `K`: Kinetic energy matrix.
+- `w`: List of weight vectors for the particles involved.
 
 # Returns
-- `E0::Float64`: The lowest eigenvalue computed from the Hamiltonian, considered as the ground state energy of the system.
-
-# Notes
-- This function constructs the Hamiltonian from the overlap, kinetic, and Coulomb matrices and solves for its eigenvalues.
+- `E0`: The lowest eigenvalue computed from the Hamiltonian.
 """
-function S_energy(bij, K, w)
-    α = []
+function S_energy(bij::Vector{Float64}, K::Matrix{Float64}, w::Vector{Vector{Float64}})
+    α = Vector{Matrix{Float64}}()
     dim = length(w)
+    @assert length(bij) % dim == 0 "Length of bij must be a multiple of the dimension."
     for i in 1:dim:length(bij)
-        A = A_generate(bij[i:i+dim-1], w)
+        bij_segment = bij[i:i+dim-1]
+        A = generate_A_matrix(bij_segment, w)
         push!(α, A)
     end
-    N, kinetic, Coulomb = S_wave(α, K, w)
+    overlap, kinetic, Coulomb = S_wave(α, K, w)
     H = kinetic + Coulomb
-    E,v = eigen(H, N)
-    E0 = minimum(E)
+    E, _ = eigen(H, overlap)  
+    E0 = minimum(real(E))  
     return E0
 end
+
+
 """
-    P_elements(a, b, A, B, K, w=nothing)
+    P_elements(a::Vector{Float64}, b::Vector{Float64}, A::PositiveDefiniteSymmetricMatrix, B::PositiveDefiniteSymmetricMatrix, K::Matrix{Float64}, w::Union{Nothing, Vector{Vector{Float64}}}=nothing)
 
 Calculate the perturbation matrix elements given two basis states represented by vectors `a` and `b`, and their respective width matrices `A` and `B`.
 
 # Arguments
-- `a::Vector`: The coefficient vector for basis state `i`.
-- `b::Vector`: The coefficient vector for basis state `j`.
-- `A::Matrix`: Matrix representing the width of Gaussian basis functions for state `i`.
-- `B::Matrix`: Matrix representing the width of Gaussian basis functions for state `j`.
-- `K::Matrix`: Kinetic energy matrix.
-- `w::Vector` (optional): Weight vectors for the particles involved.
+- `a`: The coefficient vector for basis state `i`.
+- `b`: The coefficient vector for basis state `j`.
+- `A`: Width matrix for state `i`.
+- `B`: Width matrix for state `j`.
+- `K`: Kinetic energy matrix.
+- `w` (optional): List of weight vectors for the particles involved.
 
 # Returns
-- `M1::Float64`: The overlap perturbation term.
-- `kinetic::Float64`: The kinetic energy perturbation term.
-- `Coulomb_term::Float64` (optional): The Coulomb interaction perturbation term, if weight vectors `w` are provided.
-
-# Notes
-- The Coulomb interaction perturbation term is calculated only if the weight vectors `w` are specified.
+- `M1`: The overlap perturbation term.
+- `kinetic`: The kinetic energy perturbation term.
+- `Coulomb_term` (optional): The Coulomb interaction perturbation term, if weight vectors `w` are provided.
 """
-function P_elements(a, b, A::PositiveDefiniteSymmetricMatrix, B, K, w=nothing)
-    D = A + B
+function P_elements(a::Vector{Float64}, b::Vector{Float64}, A::PositiveDefiniteSymmetricMatrix, B::PositiveDefiniteSymmetricMatrix, K::Matrix{Float64}, w::Union{Nothing, Vector{Vector{Float64}}}=nothing)
+    D = A.matrix + B.matrix
+    @assert isposdef(D) "Matrix D must be positive definite."
     R = inv(D)
-    M0, trace = S_elements(A, B, K)
-    M1 = 1/2 * (a' * R * b) * M0  # Overlap
-    kinetic = 6 * trace * M1  # Kinetic matrix elements
+    M0, trace = S_elements(A.matrix, B.matrix, K)
+    M1 = 0.5 * (a' * R * b) * M0 
+
+    kinetic = 6 * trace * M1
     kinetic += (a' * K * b) * M0
-    kinetic += -(a' * (K * A * R) * b) * M0 
-    kinetic += -(a' * (R * B * K) * b) * M0 
-    kinetic += (a' * (R * B * K * A * R) * b) * M0
-    kinetic += (a' * (R * B * K * A * R) * b) * M0
+    kinetic -= (a' * K * A.matrix * R * b) * M0
+    kinetic -= (a' * R * B.matrix * K * b) * M0
+    kinetic += (a' * R * B.matrix * K * A.matrix * R * b) * M0
 
     if w !== nothing
-        β = 1 ./ ((w' * R * w)[1])  # Coulomb terms
+        w_concat = hcat(w...)
+        β = 1.0 / (w_concat' * R * w_concat)[1]
         Coulomb_term = 2 * sqrt(β / π) * M1
-        Coulomb_term += -sqrt(β / π) * β / 3 * (a' * (R * w * w' * R) * b) * M0 
+        Coulomb_term -= sqrt(β / π) * β / 3 * (a' * R * w_concat * w_concat' * R * b) * M0
         return M1, kinetic, Coulomb_term
     else
         return M1, kinetic
     end
 end
+
 """
     pion_nucleon(alphas, masses, params)
 
@@ -277,8 +278,8 @@ Perform global optimization over a given parameter space to find optimal paramet
 function OptimizeGlobalParameters(ngauss, dim, bmax, masses, params)
     E_list = []
     gaussians = []
-    coords = []
     eigenvectors = []
+    coords = []
 
     global E0S = 0.0
     masses_min = copy(masses)

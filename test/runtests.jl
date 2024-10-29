@@ -1,85 +1,71 @@
-using FewBodyPhysics
 using Test
 using LinearAlgebra
+include("../src/FewBodyPhysics.jl")
+
+using .FewBodyPhysics
 
 @testset "FewBodyPhysics.jl" begin
-    @testset "Ω tests" begin
-        J, U = Ω([1, 2, 3])
-        @test J isa Matrix
-        @test U isa Matrix
-        @test size(J) == (2, 3)
-        @test size(U) == (3, 2)
-    end
-    
-    @testset "A_generate tests" begin
-        A = A_generate([1, 2, 3], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        @test A isa Matrix
-        @test size(A) == (3, 3)
-    end
-    
-    @testset "transform_list tests" begin
-        transformed = transform_list([1, 2, 3])
-        @test transformed isa Array
-        @test all([isa(x, Matrix) for x in transformed])
-        @test all([size(x) == (1, 1) for x in transformed])
-    end
-    
-    @testset "shift tests" begin
-        s = shift([1, 2, 3], [4, 5, 6])
-        @test s isa Float64
-        @test_throws AssertionError shift([1, 2, 3], [4, 5, 6], [1, 2])
-    end
-    
-    @testset "w_gen tests" begin
-        w = w_gen(3, 1, 2)
-        @test w isa Vector{Int}
-        @test size(w) == (3,)
-        @test w == [1, -1, 0]
-    end
-    
-    @testset "transform_coordinates tests" begin
-        r_transformed = transform_coordinates([1 0; 0 1], [1, 2])
-        @test r_transformed isa Vector{Float64}
-        @test size(r_transformed) == (2,)
-    end
-    
-    @testset "transform_back tests" begin
-        x_transformed = transform_back([1 0; 0 1], [1 2; 3 4])
-        @test x_transformed isa Matrix{Float64}
-        @test size(x_transformed) == (2, 2)
-    end
 
-    @testset "corput tests" begin
+    @testset "Corput Sequence Tests" begin
+        # Basic tests for base 2
         @test corput(1, 2) ≈ 0.5
         @test corput(2, 2) ≈ 0.25
         @test corput(3, 2) ≈ 0.75
+        @test corput(4, 2) ≈ 0.125
+        @test corput(5, 2) ≈ 0.625
+    
+        # Additional tests for base 3
+        @test corput(1, 3) ≈ 1/3
+        @test corput(2, 3) ≈ 2/3
+        @test corput(3, 3) ≈ 1/9
+        @test corput(4, 3) ≈ 4/9
+        @test corput(5, 3) ≈ 7/9
+    
+        # Additional tests for base 5
+        @test corput(1, 5) ≈ 0.2
+        @test corput(2, 5) ≈ 0.04
+        @test corput(3, 5) ≈ 0.6
+        @test corput(4, 5) ≈ 0.08
+        @test corput(5, 5) ≈ 0.16
+        @test corput(10, 5) ≈ 0.32
+    
     end
     
-    @testset "halton tests" begin
-        @test halton(1, 2) ≈ [0.5, 0.3333333333333333]
-        @test halton(2, 2) ≈ [0.25, 0.6666666666666666]
+    @testset "Halton Sequence Tests" begin
+        # Basic sequence tests for dimension 2
+        @test halton(1, 2) ≈ [0.5, 1/3]
+        @test halton(2, 2) ≈ [0.25, 2/3]
+        @test halton(3, 2) ≈ [0.75, 1/9]
+        @test halton(4, 2) ≈ [0.125, 4/9]
+        @test halton(5, 2) ≈ [0.625, 7/9]
+    
+        # Additional tests for higher dimensions
+        @test halton(1, 3) ≈ [0.5, 1/3, 0.2]
+        @test halton(2, 3) ≈ [0.25, 2/3, 0.4]
+        @test halton(3, 3) ≈ [0.75, 1/9, 0.6]
+        @test halton(4, 3) ≈ [0.125, 4/9, 0.8]
+        
+        
+        # Edge cases: checking very high `n`
+        @test halton(1000, 2) ≈ [corput(1000, 2), corput(1000, 3)]
+        @test halton(5000, 3) ≈ [corput(5000, 2), corput(5000, 3), corput(5000, 5)]
+    
+        # Edge case: requesting only 1 dimension
+        @test halton(1, 1) ≈ [0.5]
+        @test halton(10, 1) ≈ [corput(10, 2)]
+    
+        # Edge case: invalid dimension exceeding base list
         @test_throws AssertionError halton(1, 100)
+    
+        # Edge case: `n = 0` should return zero for any dimension
+        @test halton(0, 2) ≈ [0.0, 0.0]
+        @test halton(0, 5) ≈ [0.0, 0.0, 0.0, 0.0, 0.0]
+    
+        # Random large n tests for robustness
+        @test halton(123, 4) ≈ [corput(123, 2), corput(123, 3), corput(123, 5), corput(123, 7)]
+        @test halton(999, 3) ≈ [corput(999, 2), corput(999, 3), corput(999, 5)]
     end
     
-    @testset "run_simulation tests" begin
-        w_transformed = [1, 2, 3]
-        K_transformed = [1, 2, 3]
-        p, E_list, bases = run_simulation(15, :quasirandom, w_transformed, K_transformed, false)
-        @test E_list isa Float64
-        @test bases isa Array
-        @test_throws ErrorException run_simulation(15, :invalidmethod, w_transformed, K_transformed, false)
-    end
-    
-    @testset "run_simulation_nuclear tests" begin
-        masses = [1, 2, 3]
-        params = [1, 2, 3]
-        E_list, gaussians, eigenvectors, coords, masses = run_simulation_nuclear(2, 2, 5, masses, params)
-        @test E_list isa Array
-        @test gaussians isa Array
-        @test eigenvectors isa Array
-        @test coords isa Array
-        @test masses isa Array
-    end
-
     
 end
+

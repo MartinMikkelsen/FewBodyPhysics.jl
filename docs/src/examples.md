@@ -5,16 +5,16 @@ Suppose you want to calculate the ground state energy of the hydrogen anion in t
 ```@example example1
 using Plots, FewBodyPhysics
 
-masses = [Inf, 1, 1]
+masses = [1e15, 1.0, 1.0]
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 
 K = [0 0 0; 0 1/2 0; 0 0 1/2]
-J, U = Ω(masses)
-K_transformedformed = J * K * J'
-w_transformedformedformed = [U' * w_list[i] for i in 1:length(w_list)]
+J, U = jacobi_transform(masses)
+K_transformed = J * K * J'
+w_transformed = [U' * w for w in w_list]
 Theortical_value = -0.527751016523
 
-p, Energy, bases = run_simulation(50, :quasirandom, w_transformedformedformed, K_transformedformed)
+p, Energy, bases = run_simulation(50, :quasirandom, w_transformed, K_transformed)
 plot(p)
 ```
 
