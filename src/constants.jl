@@ -9,7 +9,7 @@ const ħc    = 197.3269804  # Planck's constant times speed of light in MeV·fm
 const m_bare = (m_p + m_n) / 2    # Average nucleon mass in MeV/c^2
 
 """
-    μ = (m_bare * m_pi0) / (m_bare + m_pi0)
+μ = (m_bare * m_pi0) / (m_bare + m_pi0)
 
 Reduced mass of the nucleon-pion system in MeV/c^2.
 """

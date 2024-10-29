@@ -1,8 +1,7 @@
 using LinearAlgebra
 using Optim
 
-export S_elements, S_wave, S_energy, P_elements, pion_nucleon,
-       compute_eigen_system, get_minimum_energy, optimize_global_parameters
+export S_elements, S_wave, S_energy, P_elements, pion_nucleon,ComputeEigenSystem, GetMinimumEnergy, OptimizeGlobalParameters
 
 struct PositiveDefiniteSymmetricMatrix{T<:Real}
     matrix::Matrix{T}
