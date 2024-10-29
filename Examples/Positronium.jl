@@ -1,6 +1,3 @@
-using Revise
-using .FewBodyPhysics
-
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 masses = [1.0,1.0,1.0]
 K = [1/2 0 0; 0 1/2 0; 0 0 1/2]

@@ -1,5 +1,4 @@
 using Plots
-using .FewBodyPhysics
 
 b = 3.9
 S = 41.5
