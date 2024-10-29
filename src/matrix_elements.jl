@@ -143,9 +143,8 @@ function P_elements(a::Vector{Float64}, b::Vector{Float64}, A::PositiveDefiniteS
     @assert isposdef(D) "Matrix D must be positive definite."
     R = inv(D)
     M0, trace = S_elements(A.matrix, B.matrix, K)
-    M1 = 0.5 * (a' * R * b) * M0  # Overlap perturbation term
+    M1 = 0.5 * (a' * R * b) * M0 
 
-    # Kinetic energy perturbation term
     kinetic = 6 * trace * M1
     kinetic += (a' * K * b) * M0
     kinetic -= (a' * K * A.matrix * R * b) * M0
@@ -280,8 +279,8 @@ Perform global optimization over a given parameter space to find optimal paramet
 function OptimizeGlobalParameters(ngauss, dim, bmax, masses, params)
     E_list = []
     gaussians = []
-    coords = []
     eigenvectors = []
+    coords = []
 
     global E0S = 0.0
     masses_min = copy(masses)

@@ -1,7 +1,5 @@
 export m_pi, m_pi0, m_p, m_n, μ, ħc, m_bare
 
-# Physical Constants
-
 const m_p   = 938.27       # Proton mass in MeV/c^2
 const m_n   = 939.57       # Neutron mass in MeV/c^2
 const m_pi0 = 134.98       # Neutral pion mass (π⁰) in MeV/c^2

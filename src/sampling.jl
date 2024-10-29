@@ -2,7 +2,6 @@ using Plots
 
 export corput, halton, run_simulation, run_simulation_nuclear
 
-# Generate the nth element of the van der Corput sequence in base b
 function corput(n, b=3)
     q, bk = 0.0, 1 / b
     while n > 0
@@ -108,7 +107,6 @@ function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Ve
         error("Invalid method provided!")
     end
 
-    # Plot results
     println("Best convergent numerical value: ", E_list[end])
     p = plot(gaussians, E_list, marker=:circle, label="Numerical result", linewidth=2)
     title!(p, "S-wave Convergence")
@@ -121,9 +119,6 @@ function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Ve
 
     return p, E_list[end], bases
 end
-
-
-
 
 """
 Run a nuclear simulation and print the final energy.
