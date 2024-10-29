@@ -1,7 +1,7 @@
 using Revise 
 using .FewBodyPhysics
 
-masses = [1e10, 1, 1]
+masses = [1e15, 1.0, 1.0]
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 
 K = [0 0 0; 0 1/2 0; 0 0 1/2]
