@@ -38,7 +38,7 @@ With a difference in energy
 @show Energy-Theortical_value
 ```
 ### Psudorandom
-And similarly for a quasirandom
+And similarly for a psudorandom
 ```@example 2
 using Plots, FewBodyPhysics
 
