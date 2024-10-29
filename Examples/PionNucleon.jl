@@ -16,7 +16,7 @@ grid_points = range(rmin,rmax,3000)
 
 Φ = zeros(length(grid_points), length(coordinates))
 
-for i in 1:length(coordinates)
+for i in eachindex(coordinates)
     local ϕ = zeros(length(grid_points))
     ϕ_sum = zeros(length(grid_points))
     rs = coordinates[i]
