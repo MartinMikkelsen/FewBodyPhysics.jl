@@ -3,50 +3,34 @@ using Test
 using LinearAlgebra
 
 @testset "FewBodyPhysics.jl" begin
-    @testset "Ω tests" begin
-        J, U = Ω([1, 2, 3])
-        @test J isa Matrix
-        @test U isa Matrix
+    @testset "Coordinate Transformations" begin
+        masses = [1.0, 2.0, 3.0]
+        J, U = JacobiTransform(masses)
         @test size(J) == (2, 3)
         @test size(U) == (3, 2)
-    end
     
-    @testset "A_generate tests" begin
-        A = A_generate([1, 2, 3], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        @test A isa Matrix
+        bij = [0.5, 0.8]
+        w_list = [generate_weight_vector(3, 1, 2), generate_weight_vector(3, 2, 3)]
+        A = generate_A_matrix(bij, w_list)
         @test size(A) == (3, 3)
-    end
     
-    @testset "transform_list tests" begin
-        transformed = transform_list([1, 2, 3])
-        @test transformed isa Array
-        @test all([isa(x, Matrix) for x in transformed])
-        @test all([size(x) == (1, 1) for x in transformed])
-    end
+        α = [1.0, 2.0, 3.0]
+        transformed_list = transform_list(α)
+        @test length(transformed_list) == 3
+        @test transformed_list[1] == [1.0]
     
-    @testset "shift tests" begin
-        s = shift([1, 2, 3], [4, 5, 6])
-        @test s isa Float64
-        @test_throws AssertionError shift([1, 2, 3], [4, 5, 6], [1, 2])
-    end
+        a = rand(3, 2)
+        b = rand(3, 2)
+        sum_val = shift_vectors(a, b)
+        @test isa(sum_val, Float64)
     
-    @testset "w_gen tests" begin
-        w = w_gen(3, 1, 2)
-        @test w isa Vector{Int}
-        @test size(w) == (3,)
+        w = generate_weight_vector(3, 1, 2)
         @test w == [1, -1, 0]
-    end
     
-    @testset "transform_coordinates tests" begin
-        r_transformed = transform_coordinates([1 0; 0 1], [1, 2])
-        @test r_transformed isa Vector{Float64}
-        @test size(r_transformed) == (2,)
-    end
-    
-    @testset "transform_back tests" begin
-        x_transformed = transform_back([1 0; 0 1], [1 2; 3 4])
-        @test x_transformed isa Matrix{Float64}
-        @test size(x_transformed) == (2, 2)
+        r = rand(3)
+        x = transform_coordinates(J, r)
+        r_back = inverse_transform_coordinates(U, x)
+        @test norm(r - r_back) < 1e-10
     end
 
     @testset "corput tests" begin

@@ -109,7 +109,7 @@ function S_energy(bij, K, w)
     α = []
     dim = length(w)
     for i in 1:dim:length(bij)
-        A = A_generate(bij[i:i+dim-1], w)
+        A = generate_A_matrix(bij[i:i+dim-1], w)
         push!(α, A)
     end
     N, kinetic, Coulomb = S_wave(α, K, w)
