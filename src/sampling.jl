@@ -21,14 +21,21 @@ end
 function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method::Symbol)
     E_list, bases, gaussians = Float64[], [], Int[]
     E_low = Inf
+    
     for i in 1:num_gauss
         hal = halton(i, 15 * length(w_transformed))
-        bij = Float64.(-log.(hal) * b1)
+        
+        # Correctly create `bij` as a Vector{Float64}
+        bij = -log.(hal) * b1
+
         best_energy, best_base = E_low, nothing
 
-        for j in 1:length(w_transformed):length(hal)
+        for j in 1:length(w_transformed):length(bij)
+            # Ensure that `base_segment` is correctly extracted as a Vector{Float64}
             base_segment = bij[j:j+length(w_transformed)-1]
-            E0 = S_energy(Float64(base_segment), K_transformed, w_transformed)
+
+            # Pass `base_segment` as a vector to `S_energy`
+            E0 = S_energy(base_segment, K_transformed, w_transformed)
             if E0 < best_energy
                 best_energy = E0
                 best_base = copy(base_segment)
@@ -43,6 +50,7 @@ function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method:
     end
     return E_list, bases, gaussians, E_low
 end
+
 
 function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Vector{Float64}}, K_transformed::Matrix{Float64}, plot_result::Bool=true)
     b1 = 10.0
@@ -84,20 +92,20 @@ function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Ve
         println("---------QUASI-RANDOM METHOD WITH REFINEMENT---------")
         E_list, bases, gaussians, E_low = calculate_energies(num_gauss, w_transformed, K_transformed, b1, method)
 
-        # Additional refinement step
-        for i in 1:length(bases)-length(w_transformed)
-            rand_ref = Float64.(-log.(rand(200 * length(w_transformed))) * b1)
+        for i in 1:length(bases) - length(w_transformed)
+            rand_ref = -log.(rand(200 * length(w_transformed))) * b1
             for j in 1:length(w_transformed):length(rand_ref)
-                refined_base = bases[i][1:end-length(w_transformed)]  # Adjust size accordingly
-                refined_base .= rand_ref[j:j+length(w_transformed)-1]
+                refined_base = rand_ref[j:j+length(w_transformed)-1]
                 E_refined = S_energy(refined_base, K_transformed, w_transformed)
+                
                 if E_refined < E_low
                     E_low = E_refined
-                    bases[i] .= refined_base
+                    bases[i] = copy(refined_base)  # Replace with `copy` instead of broadcasting
                 end
             end
             println("Refined Energy: ", E_low)
         end
+        
 
     elseif method == :psudorandom
         println("---------PSEUDO-RANDOM METHOD---------")

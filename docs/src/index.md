@@ -16,40 +16,42 @@ H = - \sum_{i=1}^{3} \frac{1}{2m_i}\frac{\partial^2}{\partial \boldsymbol{r}_i^2
 ```
 The masses of the three constituents are `m_i = {1, 1, 1}` and the charges `q_i = {+1, −1, −1}`. We can estimate the ground state of this Coulombic three-body system using 50 Gaussians
 
-### Psudorandom
+### Quasirandom
 
 ```@example 1
 using Plots, FewBodyPhysics
 
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
-masses = [1,1,1]
+masses = [1.0,1.0,1.0]
 K = [1/2 0 0; 0 1/2 0; 0 0 1/2]
-J, U = Ω(masses)
+J, U = jacobi_transform(masses)
 K_transformed = J * K * J'
-w_transformed = [U' * w_list[i] for i in 1:length(w_list)]
+w_transformed = [U' * w for w in w_list]
+
 Theortical_value = -0.2620050702328
 
-p, Energy = run_simulation(50,:psudorandom, w_transformed, K_transformed)
+p, Energy = run_simulation(50,:quasirandom, w_transformed, K_transformed)
 plot(p)
 ```
 With a difference in energy
 ```@example 1
-@show Theortical_value - Energy
+@show Energy-Theortical_value
 ```
-### Quasirandom
+### Psudorandom
 And similarly for a quasirandom
 ```@example 2
 using Plots, FewBodyPhysics
 
 w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
-masses = [1,1,1]
+masses = [1.0,1.0,1.0]
 K = [1/2 0 0; 0 1/2 0; 0 0 1/2]
-J, U = Ω(masses)
+J, U = jacobi_transform(masses)
 K_transformed = J * K * J'
-w_transformed = [U' * w_list[i] for i in 1:length(w_list)]
+w_transformed = [U' * w for w in w_list]
+
 Theortical_value = -0.2620050702328
 
-p, Energy = run_simulation(50,:quasirandom, w_transformed, K_transformed)
+p, Energy = run_simulation(50,:psudorandom, w_transformed, K_transformed)
 plot(p)
 ```
 With a difference in energy
@@ -68,7 +70,7 @@ b = 3.9
 S = 41.5
 
 params = [b, S]
-masses = [(m_p+m_n)/2, m_π]
+masses = [(m_p+m_n)/2, m_pi]
 
 energies, Gaussians, eigenvectors, coordinates, masses = run_simulation_nuclear(5,2,5,masses,params)
 
@@ -80,7 +82,7 @@ grid_points = range(rmin,rmax,3000)
 
 Φ = zeros(length(grid_points), length(coordinates))
 
-for i in 1:length(coordinates)
+for i in eachindex(coordinates)
     local ϕ = zeros(length(grid_points))
     ϕ_sum = zeros(length(grid_points))
     rs = coordinates[i]

@@ -1,4 +1,4 @@
-using Revise 
+using Revise
 using .FewBodyPhysics
 
 masses = [1e15, 1.0, 1.0]
