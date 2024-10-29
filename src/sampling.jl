@@ -1,7 +1,22 @@
 using Plots
 
 export corput, halton, run_simulation, run_simulation_nuclear
+"""
+    corput(n::Int, b::Int=3) -> Float64
 
+Generates the nth term of the van der Corput sequence in the given base `b`, which is often used for quasi-random number generation.
+
+# Arguments
+- `n::Int`: The position of the term in the sequence to calculate.
+- `b::Int=3`: The base for the sequence. Defaults to 3 if not provided.
+
+# Returns
+- `Float64`: The nth term in the van der Corput sequence for the given base `b`.
+
+# Example
+```julia
+corput(1, 2)  # Returns 0.5 for base 2
+"""
 function corput(n, b=3)
     q, bk = 0.0, 1 / b
     while n > 0
@@ -12,12 +27,28 @@ function corput(n, b=3)
     return q
 end
 
+""" 
+    halton(n::Int, d::Int) -> Vector{Float64}
+
+Generates a point in the Halton sequence with d dimensions, used in quasi-random sampling.
+
+    # Arguments
+    - `n::Int`: The index of the sequence point to generate.  
+    - `d::Int`: The dimensionality of the Halton sequence (i.e., the number of bases to use).
+    # Returns
+    Vector{Float64}: A vector of length d representing the nth point in the Halton sequence.
+"""
 function halton(n, d)
     base = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281]
     @assert d <= length(base) "Dimension exceeds available bases."
     return [corput(n, base[i]) for i in 1:d]
 end
 
+""" 
+    calculate_energies(num_gauss::Int, w_transformed::Vector{Vector{Float64}}, K_transformed::Matrix{Float64}, b1::Float64, method::Symbol) -> Tuple{Vector{Float64}, Vector{Vector{Float64}}, Vector{Int}, Float64}
+
+Calculates and refines energies for a set of Gaussian basis functions using quasi-random or pseudo-random methods.
+"""
 function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method::Symbol)
     E_list, bases, gaussians = Float64[], [], Int[]
     E_low = Inf
@@ -51,7 +82,11 @@ function calculate_energies(num_gauss, w_transformed, K_transformed, b1, method:
     return E_list, bases, gaussians, E_low
 end
 
+""" 
+    run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Vector{Float64}}, K_transformed::Matrix{Float64}, plot_result::Bool=true) -> Tuple{Plots.Plot, Float64, Vector{Vector{Float64}}}
 
+Runs a simulation to calculate energy values for Gaussian basis functions and optionally plots the results.
+"""
 function run_simulation(num_gauss::Int, method::Symbol, w_transformed::Vector{Vector{Float64}}, K_transformed::Matrix{Float64}, plot_result::Bool=true)
     b1 = 10.0
     E_list = Float64[]

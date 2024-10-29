@@ -2,6 +2,21 @@ using LinearAlgebra
 
 export ParticleSystem, jacobi_transform, generate_A_matrix, transform_list, shift_vectors, generate_weight_vector, transform_coordinates, inverse_transform_coordinates
 
+"""
+    ParticleSystem(masses::Vector{Float64})
+
+A data structure representing a system of particles, storing their masses and associated Jacobi transformation matrices for coordinate transformations.
+
+# Fields
+- `masses::Vector{Float64}`: A vector containing the masses of the particles.
+- `J::Matrix{Float64}`: The Jacobi transformation matrix, used to convert particle coordinates into Jacobi coordinates.
+- `U::Matrix{Float64}`: The pseudoinverse of the Jacobi transformation matrix `J`, used to transform Jacobi coordinates back to the particle coordinate system.
+
+# Constructor
+- `ParticleSystem(masses::Vector{Float64})`: Constructs a new `ParticleSystem` instance.
+  - **Arguments**:
+    - `masses`: A vector of particle masses. At least two masses are required.
+"""
 struct ParticleSystem
     masses::Vector{Float64}
     J::Matrix{Float64}

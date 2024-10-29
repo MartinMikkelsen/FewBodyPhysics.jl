@@ -20,9 +20,9 @@ S_wave
 S_energy
 P_elements
 pion_nucleon
-compute_eigen_system
-get_minimum_energy
-optimize_global_parameters
+ComputeEigenSystem
+GetMinimumEnergy
+OptimizeGlobalParameters
 ```
 
 ## Sampling
