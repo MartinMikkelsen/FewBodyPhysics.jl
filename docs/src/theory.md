@@ -31,7 +31,7 @@ Hc = \epsilon Nc,
 where $H$ and $N$ are correspondingly the Hamiltonian and the overlap matrices with the matrix elements
 
 ```math
-H_{ki} = \langle k|\hat{H}|i\rangle, \quad N_{ki}
+H_{ki} = \langle k|\hat{H}|i\rangle, \quad N_{ki} = \langle k|i\rangle
 ```
 
 ## Gaussians as basis functions
