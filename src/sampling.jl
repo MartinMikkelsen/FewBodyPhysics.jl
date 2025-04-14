@@ -3,10 +3,9 @@ module Sampling
 using ..Types
 using ..Coordinates
 using ..Hamiltonian
-
 using LinearAlgebra
 
-export generate_basis, compute_ground_state_energy
+export generate_basis, compute_ground_state_energy, run_simulation
 
 """
 generate_basis(widths::Vector{Matrix{Float64}}, rank::Int=0)

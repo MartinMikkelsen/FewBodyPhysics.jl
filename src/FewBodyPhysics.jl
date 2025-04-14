@@ -18,8 +18,7 @@ using .Constants
 
 export Particle, GaussianBase, Rank0Gaussian, Rank1Gaussian, Rank2Gaussian,
        BasisSet, Operator, KineticEnergy, CoulombPotential,
-       FewBodyHamiltonian, MatrixElementResult, SystemCoordinates, ParticleSystem, generate_A_matrix
-
+       FewBodyHamiltonian, MatrixElementResult, SystemCoordinates, ParticleSystem, generate_A_matrix, run_simulation
 
 export compute_matrix_element, build_overlap_matrix, build_operator_matrix,
        build_hamiltonian_matrix, solve_generalized_eigenproblem,
