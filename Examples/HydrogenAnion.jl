@@ -9,35 +9,43 @@ psys = ParticleSystem(masses)
 
 # Kinetic energy matrix in Jacobi coordinates
 K = Diagonal([0.0, 1/2, 1/2])
-K_transformed = psys.J * K * psys.J'
+@show K_transformed = psys.J * K * psys.J'
 
 # Weight vectors for Coulomb interactions
 w_list = [
-    [1.0, -1.0, 0.0],   # e⁻–e⁻
-    [1.0,  0.0, -1.0],  # p–e⁻
-    [0.0,  1.0, -1.0],  # p–e⁻
+    [1.0, -1.0, 0.0],
+    [1.0,  0.0, -1.0],
+    [0.0,  1.0, -1.0],
 ]
-w_transformed = [(psys.U' * w) for w in w_list]
+w_raw = [psys.U' * w for w in w_list]
+w_norm = [normalize(w) for w in w_raw] 
 
-
-# --- SVM energy loop ---
 let
-    n_basis = 250
-    b1 = 50.0
-    n_terms = length(w_transformed)
-
+    n_basis = 100
+    b1 = 10.0
+    method = :quasirandom  # :quasirandom, :psudorandom
     basis_fns = GaussianBase[]
     E_trace = Float64[]
     E_best = 1e10
 
     for i in 1:n_basis
-        bij = -log.(halton(i, n_terms)) * b1
-        A = generate_A_matrix(bij, w_transformed)
-        new_fn = Rank0Gaussian(A)
-        push!(basis_fns, new_fn)
+        if method == :nelder_mead
+            obj = bij -> begin
+                A = generate_A_matrix(bij, w_raw)
+                basis = generate_basis([A])
+                ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential(normalize(w)) for w in w_raw]
+                compute_ground_state_energy(basis, ops)
+            end
+            bij = generate_bij(method, i, length(w_raw), b1)
+        else
+            bij = generate_bij(method, i, length(w_raw), b1)
+        end
+
+        A = generate_A_matrix(bij, w_raw)
+        push!(basis_fns, Rank0Gaussian(A))
 
         basis = BasisSet(basis_fns)
-        ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential(w) for w in w_transformed]
+        ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential(normalize(w)) for w in w_raw]
 
         H = build_hamiltonian_matrix(basis, ops)
         S = build_overlap_matrix(basis)
@@ -49,9 +57,8 @@ let
         println("Step $i: E = $E0")
     end
 
-    # Report and plot
     Theoretical_value = -0.527751016523
-    @show Theoretical_value - E_best
+    @show abs(Theoretical_value - E_best)
 
     plot(1:n_basis, E_trace, xlabel="Number of Gaussians", ylabel="Energy [Hartree]",
          lw=2, label="SVM energy", title="Hydrogen Anion Convergence")

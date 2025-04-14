@@ -3,43 +3,46 @@ using FewBodyPhysics
 using LinearAlgebra
 using Plots
 
-# Define system
-masses = [1.0, 1.0, 1.0]
+masses = [1.0, 1.0, 1.0]  # proton effectively fixed
 psys = ParticleSystem(masses)
 
-# Define kinetic matrix K (unitless, internal coordinates)
-K = Matrix(I, 3, 3) ./ 2
+K = Diagonal([1/2, 1/2, 1/2])
 K_transformed = psys.J * K * psys.J'
 
-# Weight vectors (relative positions in particle space)
-w_list = [
-    [1.0, -1.0, 0.0],
-    [1.0, 0.0, -1.0],
-    [0.0, 1.0, -1.0],
-]
-w_transformed = [normalize(psys.U' * w) for w in w_list]
+w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
 
-# Generate basis set
-n_basis = 500
-n_terms = length(w_transformed)  # should be 3
-bij = 0.5 .+ rand(n_terms)
+w = [psys.U' * w for w in w_list]
 
-A = generate_A_matrix(bij, w_transformed)
-basis = BasisSet([
-    Rank0Gaussian(generate_A_matrix(rand(length(w_transformed)), w_transformed))
-    for _ in 1:n_basis
-])
+let
+    n_basis = 200
+    b1 = 6.0
+    method = :quasirandom  # :quasirandom, :psudorandom
+    basis_fns = GaussianBase[]
+    E_trace = Float64[]
+    E_best = 1e10
 
-# Define operators
-ops = [KineticEnergy(), CoulombPotential(w_transformed[1]),
-       CoulombPotential(w_transformed[2]), CoulombPotential(w_transformed[3])]
+    for i in 1:n_basis
 
-# Solve
-H = build_hamiltonian_matrix(basis, ops)
-S = build_overlap_matrix(basis)
-vals, _ = solve_generalized_eigenproblem(H, S)
-E0 = minimum(vals)
+        bij = generate_bij(method, i, length(w_raw), b1)
+        
+        A = generate_A_matrix(bij, w_raw)
+        push!(basis_fns, Rank0Gaussian(A))
 
-# Compare to known result
-Theoretical_value = -0.2620050702328
-@show E0 - Theoretical_value
+        basis = BasisSet(basis_fns)
+        ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential((w)) for w in w_raw]
+
+        H = build_hamiltonian_matrix(basis, ops)
+        S = build_overlap_matrix(basis)
+        vals, _ = solve_generalized_eigenproblem(H, S)
+        E0 = minimum(vals)
+
+        push!(E_trace, E0)
+        E_best = min(E_best, E0)
+        println("Step $i: E = $E0")
+    end
+
+    Theortical_value = -0.2620050702328
+
+    plot(1:n_basis, E_trace, xlabel="Number of Gaussians", ylabel="Energy [Hartree]",
+         lw=2, label="SVM energy", title="Hydrogen Anion Convergence")
+end

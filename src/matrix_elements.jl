@@ -2,6 +2,7 @@ module MatrixElements
 
 using LinearAlgebra
 using ..Types
+using SpecialFunctions: erf
 
 export compute_matrix_element
 
@@ -27,7 +28,6 @@ function compute_matrix_element(bra::Rank0Gaussian, ket::Rank0Gaussian, op::Coul
     return 2 * sqrt(β / π) * M0
 end
 
-
 function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::CoulombPotential)
     A, B, a, b, w = bra.A, ket.A, bra.a, ket.a, op.w
     R = inv(A + B)
@@ -44,7 +44,7 @@ function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::Kine
     M0 = (π^length(R) / det(A + B))^(3/2)
     M1 = 0.5 * dot(b, R * a) * M0
 
-    T1 = 6 * tr(B * A * R) * M1
+    T1 = 6 * tr(B * K * A * R) * M1
     T2 = dot(b, a) * M0
     T3 = dot(a, R * B * A * R * b) * M0
     T4 = dot(b, R * B * a) * M0
@@ -53,4 +53,4 @@ function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::Kine
     return (T1 + T2 + T3 + T3 - T4 - T5)
 end
 
-end # module
+end 
