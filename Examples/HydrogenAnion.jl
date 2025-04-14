@@ -7,18 +7,13 @@ using Plots
 masses = [1e15, 1.0, 1.0]  # proton effectively fixed
 psys = ParticleSystem(masses)
 
-# Kinetic energy matrix in Jacobi coordinates
 K = Diagonal([0.0, 1/2, 1/2])
-@show K_transformed = psys.J * K * psys.J'
+K_transformed = psys.J * K * psys.J'
 
 # Weight vectors for Coulomb interactions
-w_list = [
-    [1.0, -1.0, 0.0],
-    [1.0,  0.0, -1.0],
-    [0.0,  1.0, -1.0],
-]
+w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
+
 w_raw = [psys.U' * w for w in w_list]
-w_norm = [normalize(w) for w in w_raw] 
 
 let
     n_basis = 100
@@ -26,26 +21,17 @@ let
     method = :quasirandom  # :quasirandom, :psudorandom
     basis_fns = GaussianBase[]
     E_trace = Float64[]
-    E_best = 1e10
+    E_best = 1e5
 
     for i in 1:n_basis
-        if method == :nelder_mead
-            obj = bij -> begin
-                A = generate_A_matrix(bij, w_raw)
-                basis = generate_basis([A])
-                ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential(normalize(w)) for w in w_raw]
-                compute_ground_state_energy(basis, ops)
-            end
-            bij = generate_bij(method, i, length(w_raw), b1)
-        else
-            bij = generate_bij(method, i, length(w_raw), b1)
-        end
 
+        bij = generate_bij(method, i, length(w_raw), b1)
+        
         A = generate_A_matrix(bij, w_raw)
         push!(basis_fns, Rank0Gaussian(A))
 
         basis = BasisSet(basis_fns)
-        ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential(normalize(w)) for w in w_raw]
+        ops = [KineticEnergy(K_transformed)] ∪ [CoulombPotential((w)) for w in w_raw]
 
         H = build_hamiltonian_matrix(basis, ops)
         S = build_overlap_matrix(basis)
