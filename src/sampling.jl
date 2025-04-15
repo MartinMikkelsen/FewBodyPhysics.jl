@@ -4,9 +4,8 @@ using ..Types
 using ..Coordinates
 using ..Hamiltonian
 using LinearAlgebra
-import QuasiMonteCarlo: sample, SobolSample
 using Optim: optimize, NelderMead, Optim
-using ..FewBodyPhysics: halton, corput
+using ..Optimization: halton, corput
 
 export generate_basis, compute_ground_state_energy, run_simulation, generate_bij
 

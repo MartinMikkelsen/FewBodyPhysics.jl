@@ -3,8 +3,7 @@ using FewBodyPhysics
 using LinearAlgebra
 using Plots
 
-# --- Physical setup: H⁻ system (proton + 2 electrons) ---
-masses = [1e15, 1.0, 1.0]  # proton effectively fixed
+masses = [1e15, 1.0, 1.0] 
 psys = ParticleSystem(masses)
 
 K = Diagonal([0.0, 1/2, 1/2])
