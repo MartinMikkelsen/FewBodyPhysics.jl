@@ -5,7 +5,7 @@
 ParticleSystem
 jacobi_transform
 generate_A_matrix
-transform_list
+transform_list,
 shift_vectors
 generate_weight_vector
 transform_coordinates
@@ -15,14 +15,7 @@ inverse_transform_coordinates
 ## Matrix elements
 
 ```@docs
-S_elements
-S_wave
-S_energy
-P_elements
-pion_nucleon
-ComputeEigenSystem
-GetMinimumEnergy
-OptimizeGlobalParameters
+compute_matrix_element
 ```
 
 ## Sampling
@@ -30,12 +23,8 @@ OptimizeGlobalParameters
 ```@docs
 corput
 halton
-calculate_energies
+generate_basis
+compute_ground_state_energy
 run_simulation
-run_simulation_nuclear
-```
-## Constants
-
-```@docs
-μ
+generate_bij
 ```
