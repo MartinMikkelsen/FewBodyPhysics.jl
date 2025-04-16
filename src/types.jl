@@ -40,8 +40,10 @@ struct KineticEnergy <: Operator
 end
 
 struct CoulombPotential <: Operator
-    w::Vector{Float64}  # Charge difference vector
+    coefficient::Float64
+    w::Vector{Float64}
 end
+
 
 struct FewBodyHamiltonian
     basis::BasisSet

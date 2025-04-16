@@ -25,7 +25,7 @@ function compute_matrix_element(bra::Rank0Gaussian, ket::Rank0Gaussian, op::Coul
     R = inv(A + B)
     β = 1 / (dot(w, R * w))
     M0 = (π^length(R) / det(A + B))^(3/2)
-    return 2 * sqrt(β / π) * M0
+    return op.coefficient * 2 * sqrt(β / π) * M0
 end
 
 function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::CoulombPotential)

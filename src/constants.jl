@@ -3,10 +3,8 @@ module Constants
 using Unitful
 export m_p, m_n, m_pi0, m_pi, ħc, m_bare, μ
 
-# Define mass units: MeV/c²
 const uMeVc2 = u"MeV*1/c^2"
 
-# Physical constants with units
 const m_p   = 938.27uMeVc2       # Proton mass
 const m_n   = 939.57uMeVc2       # Neutron mass
 const m_pi0 = 134.98uMeVc2       # Neutral pion

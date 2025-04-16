@@ -7,6 +7,7 @@ include("matrix_elements.jl")
 include("hamiltonian.jl")
 include("optimization.jl")
 include("sampling.jl")
+include("utils.jl")
 
 using .Types
 using .Coordinates
@@ -15,6 +16,7 @@ using .Hamiltonian
 using .Sampling
 using .Optimization
 using .Constants  
+using .Utils
 
 export Particle, GaussianBase, Rank0Gaussian, Rank1Gaussian, Rank2Gaussian,
        BasisSet, Operator, KineticEnergy, CoulombPotential,
@@ -26,5 +28,7 @@ export compute_matrix_element, build_overlap_matrix, build_operator_matrix,
        corput, halton, optimize_ground_state_energy, jacobi_kinetic_matrix
 
 export m_p, m_n, m_pi0, m_pi, ħc, μ, m_bare 
+
+export ψ₀, plot_wavefunction, plot_density
 
 end
