@@ -4,7 +4,6 @@ using Optim
 using ..Types
 using ..Coordinates
 using ..Hamiltonian
-using ..Sampling
 
 export corput, halton, optimize_ground_state_energy
 
