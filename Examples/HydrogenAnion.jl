@@ -1,4 +1,3 @@
-using Revise
 using FewBodyPhysics
 using LinearAlgebra
 using Plots

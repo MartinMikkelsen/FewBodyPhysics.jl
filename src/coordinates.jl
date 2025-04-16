@@ -6,6 +6,24 @@ using ..Types
 export ParticleSystem, jacobi_transform, generate_A_matrix, transform_list,
        shift_vectors, generate_weight_vector, transform_coordinates, inverse_transform_coordinates
 
+"""
+    struct ParticleSystem
+
+A structure representing a system of particles with associated masses and transformation matrices.
+
+# Fields
+- `masses::Vector{Float64}`: A vector containing the masses of the particles in the system.
+- `J::Matrix{Float64}`: The Jacobi transformation matrix for the particle system.
+- `U::Matrix{Float64}`: An auxiliary transformation matrix for the particle system.
+
+# Constructor
+- `ParticleSystem(masses::Vector{Float64})`: Creates a new `ParticleSystem` instance. 
+  - `masses`: A vector of particle masses. Must contain at least two masses.
+  - Automatically computes the Jacobi transformation matrix `J` and auxiliary matrix `U` using the `jacobi_transform` function.
+
+# Notes
+- The constructor asserts that the `masses` vector has a length of at least 2. If this condition is not met, an error is thrown.
+"""
 struct ParticleSystem
     masses::Vector{Float64}
     J::Matrix{Float64}
@@ -18,6 +36,26 @@ struct ParticleSystem
     end
 end
 
+"""
+    jacobi_transform(masses::Vector{Float64})::Tuple{Matrix{Float64}, Matrix{Float64}}
+
+Computes the Jacobi transformation matrix `J` and its pseudoinverse `U` for a given vector of masses.
+
+# Arguments
+- `masses::Vector{Float64}`: A vector of masses for the system. Must contain at least two masses.
+
+# Returns
+- `Tuple{Matrix{Float64}, Matrix{Float64}}`: A tuple containing:
+  - `J::Matrix{Float64}`: The Jacobi transformation matrix.
+  - `U::Matrix{Float64}`: The pseudoinverse of the Jacobi transformation matrix.
+
+# Details
+The Jacobi transformation is used to convert the coordinates of a system of particles into a set of relative coordinates. The transformation matrix `J` is constructed based on the masses of the particles, and its pseudoinverse `U` is computed using the `pinv` function.
+
+# Constraints
+- The input vector `masses` must have a length of at least 2. An assertion is raised if this condition is not met.
+
+"""
 function jacobi_transform(masses::Vector{Float64})::Tuple{Matrix{Float64}, Matrix{Float64}}
     N = length(masses)
     @assert N ≥ 2 "At least two masses are required for Jacobi transformation."
@@ -42,6 +80,27 @@ function jacobi_transform(masses::Vector{Float64})::Tuple{Matrix{Float64}, Matri
     return J, U
 end
 
+"""
+    generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}}) :: Matrix{Float64}
+
+Generates a symmetric matrix `A` based on the input vector `bij` and a list of weight vectors `w_list`.
+
+# Arguments
+- `bij::Vector{Float64}`: A vector of scaling factors. The length of `bij` must match the length of `w_list`.
+- `w_list::Vector{Vector{Float64}}`: A list of weight vectors. Each weight vector must have the same dimension.
+
+# Returns
+- `Matrix{Float64}`: A symmetric matrix `A` of size `dim x dim`, where `dim` is the dimension of the weight vectors.
+
+# Constraints
+- The length of `bij` and `w_list` must be equal.
+- All weight vectors in `w_list` must have the same dimension.
+
+# Throws
+- An `AssertionError` if the lengths of `bij` and `w_list` do not match.
+- An `AssertionError` if the dimensions of the weight vectors in `w_list` are inconsistent.
+
+"""
 function generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}})::Matrix{Float64}
     @assert length(bij) == length(w_list) "Length of `bij` and `w_list` must be equal."
     dim = length(w_list[1])
@@ -54,10 +113,42 @@ function generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}}
     return A
 end
 
+"""
+    transform_list(α::Vector{Float64})::Vector{Matrix{Float64}}
+
+Transforms a vector of `Float64` values into a vector of `Matrix{Float64}` objects. 
+Each element of the input vector `α` is wrapped into a 1x1 matrix and returned as 
+an element of the resulting vector.
+
+# Arguments
+- `α::Vector{Float64}`: A vector of `Float64` values to be transformed.
+
+# Returns
+- `Vector{Matrix{Float64}}`: A vector where each element is a 1x1 matrix containing 
+  the corresponding value from the input vector `α`.
+"""
 function transform_list(α::Vector{Float64})::Vector{Matrix{Float64}}
     return [Matrix{Float64}([α_i]) for α_i in α]
 end
 
+"""
+    shift_vectors(a::Matrix{Float64}, b::Matrix{Float64}, mat::Union{Nothing, Matrix{Float64}}=nothing) -> Float64
+
+Compute a weighted sum of dot products between columns of two matrices `a` and `b`, 
+optionally using a weighting matrix `mat`.
+
+# Arguments
+- `a::Matrix{Float64}`: A matrix where each column represents a vector.
+- `b::Matrix{Float64}`: A matrix where each column represents a vector. Must have the same number of columns as `a`.
+- `mat::Union{Nothing, Matrix{Float64}}`: An optional square weighting matrix. If `nothing` is provided, the identity matrix is used.
+
+# Returns
+- `Float64`: The computed weighted sum of dot products.
+
+# Constraints
+- The number of columns in `a` and `b` must be the same.
+- If `mat` is provided, it must be a square matrix with dimensions equal to the number of columns in `a` and `b`.
+"""
 function shift_vectors(a::Matrix{Float64}, b::Matrix{Float64}, mat::Union{Nothing, Matrix{Float64}}=nothing)::Float64
     n = size(a, 2)
     @assert n == size(b, 2) "Matrices `a` and `b` must have the same number of columns."
