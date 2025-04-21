@@ -16,7 +16,7 @@ coeffs = [+1.0, -1.0, -1.0]
 
 let
     n_basis = 50
-    b1 = 10.0
+    b1 = default_b0(psys.scale)
     method = :quasirandom
     basis_fns = GaussianBase[]
     E₀_list = Float64[]

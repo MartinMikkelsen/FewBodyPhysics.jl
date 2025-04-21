@@ -14,8 +14,8 @@ w_raw = [psys.U' * w for w in w_list]
 
 let
     n_basis = 50
-    b1 = 7.0
-    method = :quasirandom  # :quasirandom, :psudorandom
+    b1 = default_b0(psys.scale)
+    method = :quasirandom  
     basis_fns = GaussianBase[]
     E₀_list = Float64[]
     coeffs = [-1.0, -1.0, +1.0]

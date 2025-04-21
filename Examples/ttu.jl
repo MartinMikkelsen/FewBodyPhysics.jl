@@ -4,7 +4,7 @@ using LinearAlgebra
 using Plots
 
 masses = [5496.918, 3670.481, 206.7686]  
-psys = ParticleSystem(masses)
+psys = ParticleSystem(masses; scale=:nuclear)
 
 K_cartesian = Diagonal(1 ./ masses)
 K_transformed = psys.J * K_cartesian * psys.J'
@@ -16,11 +16,11 @@ w_list = [
     [0, 1, -1]   # d – μ⁻
 ]
 w_raw = [psys.U' * w for w in w_list]
-coeffs = [+1.0, -1.0, -1.0]  # [t–d, t–μ, d–μ]
+coeffs = [+1.0, +1.0, -1.0]  # [t–d, t–μ, d–μ]
 
 let
-    n_basis = 200
-    b1 = 0.025
+    n_basis = 500
+    b1 = 0.25
     method = :quasirandom
     basis_fns = GaussianBase[]
     E₀_list = Float64[]

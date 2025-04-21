@@ -4,35 +4,34 @@ using LinearAlgebra
 using ..Types
 
 export ParticleSystem, jacobi_transform, generate_A_matrix, transform_list,
-       shift_vectors, generate_weight_vector, transform_coordinates, inverse_transform_coordinates
+       shift_vectors, generate_weight_vector, transform_coordinates, inverse_transform_coordinates, default_b0
+
 
 """
     struct ParticleSystem
 
-A structure representing a system of particles with associated masses and transformation matrices.
+A structure representing a system of particles with associated masses and coordinate transformations.
 
 # Fields
-- `masses::Vector{Float64}`: A vector containing the masses of the particles in the system.
-- `J::Matrix{Float64}`: The Jacobi transformation matrix for the particle system.
-- `U::Matrix{Float64}`: An auxiliary transformation matrix for the particle system.
+- `masses::Vector{Float64}`: A vector containing the masses of the particles in the system. Must contain at least two elements.
+- `J::Matrix{Float64}`: The Jacobi transformation matrix for the particle system, computed based on the masses.
+- `U::Matrix{Float64}`: An auxiliary transformation matrix for the particle system, computed based on the masses.
+- `scale::Union{Symbol,Nothing}`: An optional symbol indicating the scale of the system (e.g., `:atomic`, `:molecular`, `:nuclear`). Defaults to `nothing`.
 
 # Constructor
-- `ParticleSystem(masses::Vector{Float64})`: Creates a new `ParticleSystem` instance. 
-  - `masses`: A vector of particle masses. Must contain at least two masses.
-  - Automatically computes the Jacobi transformation matrix `J` and auxiliary matrix `U` using the `jacobi_transform` function.
-
-# Notes
-- The constructor asserts that the `masses` vector has a length of at least 2. If this condition is not met, an error is thrown.
+- `ParticleSystem(masses::Vector{Float64}; scale::Union{Symbol,Nothing}=nothing)`: 
+  Creates a new `ParticleSystem` instance. The `masses` vector must contain at least two elements. The `scale` parameter is optional and can be used to specify the scale of the system. The Jacobi and auxiliary transformation matrices (`J` and `U`) are computed internally using the `jacobi_transform` function.
 """
 struct ParticleSystem
     masses::Vector{Float64}
     J::Matrix{Float64}
     U::Matrix{Float64}
+    scale::Union{Symbol,Nothing}  # :atomic, :molecular, :nuclear, etc.
 
-    function ParticleSystem(masses::Vector{Float64})
+    function ParticleSystem(masses::Vector{Float64}; scale::Union{Symbol,Nothing}=nothing)
         @assert length(masses) ≥ 2 "At least two masses are required for a particle system."
         J, U = jacobi_transform(masses)
-        new(masses, J, U)
+        new(masses, J, U, scale)
     end
 end
 
@@ -80,27 +79,27 @@ function jacobi_transform(masses::Vector{Float64})::Tuple{Matrix{Float64}, Matri
     return J, U
 end
 
-"""
-    generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}}) :: Matrix{Float64}
 
-Generates a symmetric matrix `A` based on the input vector `bij` and a list of weight vectors `w_list`.
+"""
+    default_b0(scale::Union{Symbol,Nothing}) -> Float64
+
+Returns a default value for the parameter `b0` based on the provided `scale`.
 
 # Arguments
-- `bij::Vector{Float64}`: A vector of scaling factors. The length of `bij` must match the length of `w_list`.
-- `w_list::Vector{Vector{Float64}}`: A list of weight vectors. Each weight vector must have the same dimension.
-
-# Returns
-- `Matrix{Float64}`: A symmetric matrix `A` of size `dim x dim`, where `dim` is the dimension of the weight vectors.
-
-# Constraints
-- The length of `bij` and `w_list` must be equal.
-- All weight vectors in `w_list` must have the same dimension.
-
-# Throws
-- An `AssertionError` if the lengths of `bij` and `w_list` do not match.
-- An `AssertionError` if the dimensions of the weight vectors in `w_list` are inconsistent.
-
+- `scale::Union{Symbol,Nothing}`: A symbol representing the scale type or `nothing`.
+    - `:atomic`: Returns `1.0`, corresponding to the Bohr radius in atomic units.
+    - `:molecular`: Returns `3.0`, representing a typical molecular bond length.
+    - `:nuclear`: Returns `0.05`, approximately 1 femtometer in atomic units.
+    - `nothing`: Returns `1.0` as a fallback default.
 """
+function default_b0(scale::Union{Symbol,Nothing})
+    scale === :atomic     && return 1.0       
+    scale === :molecular  && return 3.0       
+    scale === :nuclear    && return 0.05     
+    scale === nothing     && return 10.0    
+    error("Unknown scale: $scale")
+end
+
 function generate_A_matrix(bij::Vector{Float64}, w_list::Vector{Vector{Float64}})::Matrix{Float64}
     @assert length(bij) == length(w_list) "Length of `bij` and `w_list` must be equal."
     dim = length(w_list[1])
