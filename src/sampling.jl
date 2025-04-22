@@ -4,17 +4,15 @@ using ..Types
 using ..Coordinates
 using ..Hamiltonian
 using LinearAlgebra
-using Optim: optimize, NelderMead, Optim
 
-export corput, halton, generate_basis, compute_ground_state_energy, run_simulation, generate_bij
-
+export corput, halton, generate_basis, compute_ground_state_energy, generate_bij
 
 """
-corput(n::Int, b::Int=3)
+    corput(n::Int, b::Int=2)
 
-Generates the nth van der Corput sequence value in base `b`.
+Generates the nth van der Corput sequence value in base `b`. The default base is 2, which provides good uniformity for the first few dimensions and is standard in quasi-Monte Carlo settings.
 """
-function corput(n::Int, b::Int=3)
+function corput(n::Int, b::Int=2)
     q, bk = 0.0, 1 / b
     while n > 0
         n, rem = divrem(n, b)
@@ -57,15 +55,13 @@ Supported methods: :quasirandom, :psudorandom
 """
 function generate_bij(method::Symbol, i::Int, n_terms::Int, b1::Float64)
     if method == :quasirandom
-        return -log.(halton(i, n_terms)) * b1
+        return halton(i, n_terms) * b1
     elseif method == :psudorandom
-        return -log.(rand(n_terms)) * b1
+        return rand(n_terms) * b1
     else
         error("Unsupported sampling method: $method")
     end
 end
-
-
 
 """
 compute_ground_state_energy(basis::BasisSet, ops::Vector{Operator})

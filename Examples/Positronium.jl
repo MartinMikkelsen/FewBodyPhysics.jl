@@ -1,4 +1,3 @@
-using Revise
 using FewBodyPhysics
 using LinearAlgebra
 using Plots
@@ -17,7 +16,7 @@ coeffs = [+1.0, -1.0, -1.0]
 let
     n_basis = 50
     b1 = default_b0(psys.scale)
-    method = :quasirandom
+    method = :psudorandom
     basis_fns = GaussianBase[]
     E₀_list = Float64[]
 

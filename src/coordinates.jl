@@ -89,13 +89,13 @@ Returns a default value for the parameter `b0` based on the provided `scale`.
 - `scale::Union{Symbol,Nothing}`: A symbol representing the scale type or `nothing`.
     - `:atomic`: Returns `1.0`, corresponding to the Bohr radius in atomic units.
     - `:molecular`: Returns `3.0`, representing a typical molecular bond length.
-    - `:nuclear`: Returns `0.05`, approximately 1 femtometer in atomic units.
+    - `:nuclear`: Returns `0.03`, approximately 1 femtometer in atomic units.
     - `nothing`: Returns `1.0` as a fallback default.
 """
 function default_b0(scale::Union{Symbol,Nothing})
     scale === :atomic     && return 1.0       
     scale === :molecular  && return 3.0       
-    scale === :nuclear    && return 0.05     
+    scale === :nuclear    && return 0.03     
     scale === nothing     && return 10.0    
     error("Unknown scale: $scale")
 end

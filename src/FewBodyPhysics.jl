@@ -5,8 +5,8 @@ include("coordinates.jl")
 include("constants.jl") 
 include("matrix_elements.jl")
 include("hamiltonian.jl")
-include("optimization.jl")
 include("sampling.jl")
+include("optimization.jl")
 include("utils.jl")
 
 using .Types
