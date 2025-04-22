@@ -1,5 +1,8 @@
 # FewBodyPhysics.jl
 
+!!! warning "WIP"
+    This is work in progress. 
+
 ## Installation
 
 Get the latest stable release with Julia's package manager:
@@ -16,88 +19,68 @@ H = - \sum_{i=1}^{3} \frac{1}{2m_i}\frac{\partial^2}{\partial \boldsymbol{r}_i^2
 ```
 The masses of the three constituents are `m_i = {1, 1, 1}` and the charges `q_i = {+1, −1, −1}`. We can estimate the ground state of this Coulombic three-body system using 50 Gaussians
 
-### Quasirandom
+```@example example2
+using FewBodyPhysics
+using LinearAlgebra
+using Plots
 
-```@example 1
-using Plots, FewBodyPhysics
+masses = [1.0, 1.0, 1.0]
+psys = ParticleSystem(masses)
 
-w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
-masses = [1.0,1.0,1.0]
-K = [1/2 0 0; 0 1/2 0; 0 0 1/2]
-J, U = jacobi_transform(masses)
-K_transformed = J * K * J'
-w_transformed = [U' * w for w in w_list]
+K = Diagonal([1/2, 1/2, 1/2])
+K_transformed = psys.J * K * psys.J'
 
-Theortical_value = -0.2620050702328
+w_list = [[1, -1, 0], [1, 0, -1], [0, 1, -1]]
+w_raw = [psys.U' * w for w in w_list]
 
-p, Energy = run_simulation(50,:quasirandom, w_transformed, K_transformed)
-plot(p)
-```
-With a difference in energy
-```@example 1
-@show Energy-Theortical_value
-```
-### Psudorandom
-And similarly for a psudorandom
-```@example 2
-using Plots, FewBodyPhysics
+coeffs = [+1.0, -1.0, -1.0]
 
-w_list = [ [1, -1, 0], [1, 0, -1], [0, 1, -1] ]
-masses = [1.0,1.0,1.0]
-K = [1/2 0 0; 0 1/2 0; 0 0 1/2]
-J, U = jacobi_transform(masses)
-K_transformed = J * K * J'
-w_transformed = [U' * w for w in w_list]
+let
+    n_basis = 50
+    b1 = default_b0(psys.scale)
+    method = :psudorandom
+    basis_fns = GaussianBase[]
+    E₀_list = Float64[]
 
-Theortical_value = -0.2620050702328
+    for i in 1:n_basis
+        bij = generate_bij(method, i, length(w_raw), b1)
+        A = generate_A_matrix(bij, w_raw)
+        push!(basis_fns, Rank0Gaussian(A))
 
-p, Energy = run_simulation(50,:psudorandom, w_transformed, K_transformed)
-plot(p)
-```
-With a difference in energy
-```@example 2
-@show Theortical_value - Energy
-```
+        basis = BasisSet(basis_fns)
+        ops = Operator[
+            KineticEnergy(K_transformed);
+            (CoulombPotential(c, w) for (c, w) in zip(coeffs, w_raw))...
+        ]
 
-### Custom system
+        H = build_hamiltonian_matrix(basis, ops)
+        S = build_overlap_matrix(basis)
+        vals, vecs = solve_generalized_eigenproblem(H, S)
+        global c₀ = vecs[:, 1]
+        E₀ = minimum(vals)
 
-One of the strengths of this numerical method is that all the matrix elements are analytical. Consider the following example from [Threshold photoproduction of neutral pions off protons in nuclear model with explicit mesons](https://arxiv.org/pdf/2209.12071.pdf). 
-
-```@example
-using Optim, FewBodyPhysics, Plots
-
-b = 3.9
-S = 41.5
-
-params = [b, S]
-masses = [(m_p+m_n)/2, m_pi]
-
-energies, Gaussians, eigenvectors, coordinates, masses = run_simulation_nuclear(5,2,5,masses,params)
-
-rmax = 5 * b
-rmin = 0.01 * b
-start = log(rmin)
-stop = log(rmax)
-grid_points = range(rmin,rmax,3000)
-
-Φ = zeros(length(grid_points), length(coordinates))
-
-for i in eachindex(coordinates)
-    local ϕ = zeros(length(grid_points))
-    ϕ_sum = zeros(length(grid_points))
-    rs = coordinates[i]
-    c = eigenvectors[i]
-    A = [1 / (b^2) for b in rs]
-    for j in 2:min(length(c), length(A)) 
-        ϕ_sum .+= c[j] .* exp.(-(A[j-1]) .* grid_points.^2)
+        push!(E₀_list, E₀)
+        println("Step $i: E₀ = $E₀")
     end
-    ϕ .+= ϕ_sum 
-    Φ[:, i] = ϕ ./ c[1]
+
+    E₀ = minimum(E₀_list)
+    Eᵗʰ = -0.2620050702328
+    ΔE = abs(E₀ - Eᵗʰ)
+    @show ΔE
+
+    #  function
+    r = range(0.01, 14.0, length=400)
+    ρ_r = [rval^2 * abs2(ψ₀([rval, 0.0], c₀, basis_fns)) for rval in r]
+    
+    p1 = plot(r, ρ_r, xlabel="r (a.u.)", ylabel="r²|ψ₀(r)|²",
+              lw=2, label="r²C(r)", title="Electron-Positron Correlation Function")
+    
+
+    # Energy convergence
+    p2 = plot(1:n_basis, E₀_list, xlabel="Number of Gaussians", ylabel="E₀ [Hartree]",
+    lw=2, label="Ground state energy", title="Positronium Convergence")
+
+    plot(p1, p2, layout=(2, 1))
+
 end
-
-r = range(rmin,rmax, length=3000)
-
-plot(r, Φ[:,1], title="Φ(r)", label="Φ(r)",ylabel="Φ",xlabel="r", linewidth=2) #with phase
-Φ_prime = diff(Φ[:,1]) ./ diff(r)
-plot!(r[1:end-1], Φ_prime, label="Φ'(r)", linewidth=2)
 ```

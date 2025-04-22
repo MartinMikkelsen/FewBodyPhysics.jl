@@ -1,13 +1,34 @@
 module FewBodyPhysics
 
-export m_pi, m_pi0, m_p, m_n, μ, ħc, m_bare
-export jacobi_transform, generate_A_matrix, transform_list, shift_vectors, generate_weight_vector, transform_coordinates, inverse_transform_coordinates
-export S_elements, S_wave, S_energy, P_elements, pion_nucleon, ComputeEigenSystem, GetMinimumEnergy, OptimizeGlobalParameters
-export corput, halton, calculate_energies, run_simulation, run_simulation_nuclear
-
-include("constants.jl")
+include("types.jl")
 include("coordinates.jl")
+include("constants.jl") 
 include("matrix_elements.jl")
+include("hamiltonian.jl")
 include("sampling.jl")
+include("optimization.jl")
+include("utils.jl")
+
+using .Types
+using .Coordinates
+using .MatrixElements
+using .Hamiltonian
+using .Sampling
+using .Optimization
+using .Constants  
+using .Utils
+
+export Particle, GaussianBase, Rank0Gaussian, Rank1Gaussian, Rank2Gaussian,
+       BasisSet, Operator, KineticEnergy, CoulombPotential,
+       FewBodyHamiltonian, MatrixElementResult, SystemCoordinates, ParticleSystem, generate_A_matrix, run_simulation, generate_bij, default_b0
+
+export compute_matrix_element, build_overlap_matrix, build_operator_matrix,
+       build_hamiltonian_matrix, solve_generalized_eigenproblem,
+       generate_basis, compute_ground_state_energy,
+       corput, halton, optimize_ground_state_energy, jacobi_kinetic_matrix
+
+export m_p, m_n, m_pi0, m_pi, ħc, μ, m_bare 
+
+export ψ₀, plot_wavefunction, plot_density
 
 end

@@ -1,16 +1,19 @@
-export m_pi, m_pi0, m_p, m_n, μ, ħc, m_bare
+module Constants
 
-const m_p   = 938.27       # Proton mass in MeV/c^2
-const m_n   = 939.57       # Neutron mass in MeV/c^2
-const m_pi0 = 134.98       # Neutral pion mass (π⁰) in MeV/c^2
-const m_pi  = 139.57       # Charged pion mass (π⁺/π⁻) in MeV/c^2
-const ħc    = 197.3269804  # Planck's constant times speed of light in MeV·fm
+using Unitful
+export m_p, m_n, m_pi0, m_pi, ħc, m_bare, μ
 
-const m_bare = (m_p + m_n) / 2    # Average nucleon mass in MeV/c^2
+const uMeVc2 = u"MeV*1/c^2"
 
-"""
-μ = (m_bare * m_pi0) / (m_bare + m_pi0)
+const m_p   = 938.27uMeVc2       # Proton mass
+const m_n   = 939.57uMeVc2       # Neutron mass
+const m_pi0 = 134.98uMeVc2       # Neutral pion
+const m_pi  = 139.57uMeVc2       # Charged pion
 
-Reduced mass of the nucleon-pion system in MeV/c^2.
-"""
-const μ = (m_bare * m_pi0) / (m_bare + m_pi0)
+const ħc    = 197.3269804u"MeV*fm"  # ħ·c in MeV·fm
+
+# Derived masses
+const m_bare = (m_p + m_n) / 2        # Average nucleon mass
+const μ = (m_bare * m_pi0) / (m_bare + m_pi0)  # Reduced mass of pion-nucleon system
+
+end
