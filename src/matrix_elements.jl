@@ -39,7 +39,11 @@ function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::Coul
 end
 
 function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::KineticEnergy)
-    A, B, a, b = bra.A, ket.A, bra.a, ket.a
+    a = bra.a isa AbstractVector{<:AbstractVector} ? vec(bra.a[1]) : vec(bra.a)
+    b = ket.a isa AbstractVector{<:AbstractVector} ? vec(ket.a[1]) : vec(ket.a)
+    
+    A, B = bra.A, ket.A
+    K = op.K  
     R = inv(A + B)
     M0 = (π^length(R) / det(A + B))^(3/2)
     M1 = 0.5 * dot(b, R * a) * M0
@@ -50,8 +54,10 @@ function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::Kine
     T4 = dot(b, R * B * a) * M0
     T5 = dot(a, R * A * b) * M0
 
-    return (T1 + T2 + T3 + T3 - T4 - T5)
+    return T1 + T2 + T3 + T3 - T4 - T5
 end
+
+
 
 function compute_matrix_element(bra::Rank2Gaussian, ket::Rank2Gaussian, op::KineticEnergy)
     A, B = bra.A, ket.A
