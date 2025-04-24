@@ -32,16 +32,15 @@ for i in 1:n_basis
 
     H = build_hamiltonian_matrix(basis, ops)
     S = build_overlap_matrix(basis)
-
+    
     λs, Us = eigen(S)
     keep = λs .> 1e-10
     S⁻¹₂ = Us[:, keep] * Diagonal(1 ./ sqrt.(λs[keep])) * Us[:, keep]'
     H̃ = Symmetric(S⁻¹₂ * H * S⁻¹₂)
-
-    eig = eigen(H̃)
-    local c₀ = S⁻¹₂ * eig.vectors[:, 1]
-
-    plot_wavefunction(c₀, basis_fns; axis=1, range=(-6.0, 6.0), N=25)
+    E₀ = minimum(eigen(H̃).values)
+    
+    push!(E₀_list, E₀)
+    
     
 end
 

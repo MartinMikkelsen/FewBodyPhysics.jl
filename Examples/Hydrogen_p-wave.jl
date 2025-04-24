@@ -2,7 +2,7 @@ using FewBodyPhysics
 using LinearAlgebra
 using Plots
 
-masses = [1e10, 1.0]
+masses = [1e15, 1.0]
 psys = ParticleSystem(masses)
 
 K = Diagonal([0.0, 0.5])
@@ -11,9 +11,9 @@ K_transformed = psys.J * K * psys.J'
 w_raw = [psys.U' * [1, -1]]
 coeffs = [-1.0]
 
-n_basis = 5
-method = :quasirandom
-b1 = default_b0(psys.scale)
+n_basis = 10
+method = :quasirandom  
+b1 = 2.5
 
 basis_fns = GaussianBase[]
 E₀_list = Float64[]
@@ -35,7 +35,7 @@ for i in 1:n_basis
     S = build_overlap_matrix(basis)
 
     vals, _ = solve_generalized_eigenproblem(H, S)
-    valid = vals .> 1e-8
+    valid = vals .> 1e-6
     S⁻¹₂ = Diagonal(1 ./ sqrt.(vals[valid]))
     H̃ = S⁻¹₂ * H[valid, valid] * S⁻¹₂
     eigvals = eigen(H̃).values

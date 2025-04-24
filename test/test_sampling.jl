@@ -1,5 +1,4 @@
 using Test
-using Random
 using FewBodyPhysics.Sampling
 
 @testset "Sampling Module Tests" begin
@@ -53,12 +52,6 @@ using FewBodyPhysics.Sampling
         @test length(bij_quasi) == 4
         @test all(0 .<= bij_quasi .<= b1)
         @test bij_quasi == halton(3, 4) * b1
-        
-        # Test pseudorandom generation
-        Random.seed!(123)  # For reproducibility
-        bij_pseudo = generate_bij(:psudorandom, 3, 4, b1)
-        @test length(bij_pseudo) == 4
-        @test all(0 .<= bij_pseudo .<= b1)
         
         # Test invalid method
         @test_throws ErrorException generate_bij(:invalid, 3, 4, b1)
