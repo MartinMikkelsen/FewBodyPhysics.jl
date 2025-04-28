@@ -10,17 +10,21 @@ export corput, halton, generate_basis, compute_ground_state_energy, generate_bij
 """
     corput(n::Int, b::Int=2)
 
-Generates the nth van der Corput sequence value in base `b`. The default base is 2, which provides good uniformity for the first few dimensions and is standard in quasi-Monte Carlo settings.
+Computes the n-th number in the van der Corput sequence in base `b`
+using digit reversal. Follows the standard definition:
+    qₙ = ∑ dₖ(n) * b^(-k-1)
 """
 function corput(n::Int, b::Int=2)
-    q, bk = 0.0, 1 / b
+    q = 0.0
+    f = 1.0 / b
     while n > 0
-        n, rem = divrem(n, b)
-        q += rem * bk
-        bk /= b
+        n, d = divrem(n, b)
+        q += d * f
+        f /= b
     end
     return q
 end
+
 
 """
 halton(n::Int, d::Int)
