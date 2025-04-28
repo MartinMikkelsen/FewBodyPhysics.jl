@@ -54,7 +54,7 @@ function compute_matrix_element(bra::Rank1Gaussian, ket::Rank1Gaussian, op::Kine
     T4 = dot(b, R * B * a) * M0
     T5 = dot(a, R * A * b) * M0
 
-    return T1 + T2 + T3 + T3 - T4 - T5
+    return T1 + T2 + T3 - T4 - T5
 end
 
 

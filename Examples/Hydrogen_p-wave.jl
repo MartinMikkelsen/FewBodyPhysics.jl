@@ -11,9 +11,9 @@ K_transformed = psys.J * K * psys.J'
 w_raw = [psys.U' * [1, -1]]
 coeffs = [-1.0]
 
-n_basis = 10
+n_basis = 5
 method = :quasirandom  
-b1 = 2.5
+b1 = 1.0
 
 basis_fns = GaussianBase[]
 E₀_list = Float64[]
