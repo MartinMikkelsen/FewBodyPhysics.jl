@@ -157,5 +157,4 @@ function compute_matrix_element(bra::Rank2Gaussian, ket::Rank2Gaussian, op::Coul
     return op.coefficient * (term1 + term2 + term3)
 end
 
-
 end 
