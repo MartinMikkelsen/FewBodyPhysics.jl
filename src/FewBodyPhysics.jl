@@ -27,7 +27,7 @@ export compute_matrix_element, build_overlap_matrix, build_operator_matrix,
        generate_basis, compute_ground_state_energy,
        corput, halton, optimize_ground_state_energy, jacobi_kinetic_matrix
 
-export m_p, m_n, m_pi0, m_pi, ħc, μ, m_bare 
+export m_p, m_n, m_pi0, m_pi, ħc
 
 export ψ₀, plot_wavefunction, plot_density
 

@@ -9,8 +9,5 @@ const m_pi  = 139.57      # Charged pion
 
 const ħc    = 197.3269804  # ħ·c in MeV·fm
 
-# Derived masses
-const m_bare = (m_p + m_n) / 2        # Average nucleon mass
-const μ = (m_bare * m_pi0) / (m_bare + m_pi0)  # Reduced mass of pion-nucleon system
 
 end
